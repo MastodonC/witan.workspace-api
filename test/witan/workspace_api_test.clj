@@ -55,6 +55,14 @@
              (mulX {:multiple 3}))
          {:number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
 
+(deftest find-workflowfn-test
+  (testing "Can we find all the exported workflow functions in this namespace?"
+    (is (= (ns-workflowfns 'witan.workspace-api-test)
+           [#'witan.workspace-api-test/inc*
+            #'witan.workspace-api-test/mul2
+            #'witan.workspace-api-test/broken
+            #'witan.workspace-api-test/mulX]))))
+
 (deftest schema-errors-test
   (testing "Does the macro catch errors in input schema?"
     (is (thrown-with-msg?
