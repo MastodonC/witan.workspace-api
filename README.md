@@ -36,7 +36,7 @@ The macro wraps a standard function to provide some extra functionality:
 
 ### merge->
 
-Use this macro to simulate a graph merge. Threads initial data into the first arg of each form, then merges the results. Forms *should* be workflow fns (at the least, they must return a map). 
+Use this macro to simulate a graph merge. Initial data is threaded as the first arg of each form, then the results are merged. Forms *should* be workflow fns (at the least, they must return a map). 
 
 ```clojure
 (require '[witan.workspace-api :refer [defworkflowfn merge->]]
@@ -54,7 +54,7 @@ Be aware that if a workflow fn outputs the same key as an input, this will likel
 
 ## Notes on Model authoring
 
-This library is designed to help develop models at both the workspace/workflow level and also the levels beneath. To this end, the `defworkflowfn` and associated macros (e.g. `merge->` are designed to assist in creating and simulating graph-compute-like behaviour. For example, where to simulate a diamond workflow, the following should suffice:
+This library is designed to help develop models at both the workspace/workflow level and also the levels beneath. To this end, the `defworkflowfn` and associated macros (e.g. `merge->`) are designed to assist in creating and simulating graph-compute-like behaviour. For example, where to simulate a diamond workflow, the following should suffice:
 
 ```clojure
 ;    1
