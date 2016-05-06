@@ -7,10 +7,10 @@
   {:witan/name          :witan.test-fns.inc
    :witan/version       "1.0"
    :witan/exported?     true
-   :witan/input-schema  {:numberA s/Num}
+   :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberA s/Num}}
-  [{:keys [numberA]} _]
-  {:numberA (+ numberA 1)})
+  [{:keys [input]} _]
+  {:numberA (+ input 1)})
 
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
@@ -47,13 +47,20 @@
   (testing "Can the workflow functions be thread-first'ed?"
     (is (=
          (-> {:number 1 :foo "bar"}
-             (rename-keys {:number :numberA})
+             (rename-keys {:number :input})
              (inc*)
              (rename-keys {:numberA :numberB})
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
-         {:number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+         {:input 1 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+
+(deftest merge-macro-test
+  (testing "Does the merge-> macro operate as expected?"
+    (is (= (merge-> {:input 2 :numberC 4}
+                    inc*
+                    (mulX {:multiple 3}))
+           {:input 2 :numberA 3 :numberC 4 :number 12}))))
 
 (deftest find-workflowfn-test
   (testing "Can we find all the exported workflow functions in this namespace?"
@@ -67,7 +74,7 @@
   (testing "Does the macro catch errors in input schema?"
     (is (thrown-with-msg?
          Exception
-         #"Value does not match schema: \{:numberA missing-required-key\}"
+         #"Value does not match schema: \{:input missing-required-key\}"
          (inc* {:number 12}))))
   (testing "Does the macro catch errors in output schema?"
     (is (thrown-with-msg?
@@ -89,5 +96,5 @@
              {:witan/name          :witan.test-fns.inc
               :witan/version       "1.0"
               :witan/exported?     true
-              :witan/input-schema  {:numberA s/Num}
+              :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}})))))
