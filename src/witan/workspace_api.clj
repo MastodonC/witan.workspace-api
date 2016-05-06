@@ -44,6 +44,15 @@
              result'# (select-schema-keys ~output-schema result#)]
          (merge inputs# result'#)))))
 
+(defmacro merge->
+  "Macro sending x to multiple forms and then merging the results"
+  [x & forms]
+  (let [split (map (fn [f]
+                     (if (seq? f)
+                       (vector (first f) (-> f rest vec))
+                       (vector f []))) forms)]
+    `(apply merge (map (fn [[f# args#]] (apply f# ~x args#)) (list ~@split)))))
+
 (defn ns-workflowfns
   "Fetches exported workflowfns from a ns"
   [ns-sym]

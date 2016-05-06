@@ -38,6 +38,22 @@ The macro wraps a standard function to provide some extra functionality:
 * Whilst only providing what's specified in the _input schema_, the fn will only accept, as a return value, a map that validates against the _output schema_. Extraneous keys will be culled.
 * The return value is merged with the original input map, so that it will accrete over time.
 
+### merge->
+
+Use this macro to simulate a graph merge. Threads initial data into the first arg of each form, then merges the results. Forms *should* be workflow fns (at the least, they must return a map). 
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowfn merge->]]
+
+;; assumes you have some workflow fns defined
+
+(merge-> {:number 1}
+         (my-function-1) ;; returns {:output-1 (inc number)}
+         (my-function-2-with-params {:foo "bar"})) ;; returns {:output-2 (str number foo)}
+=> {:number 1 :output-1 2 :output-2 "1bar"}
+
+```
+
 
 ## License
 
