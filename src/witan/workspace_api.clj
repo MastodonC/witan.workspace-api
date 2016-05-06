@@ -37,6 +37,15 @@
              result'# (select-schema-keys ~output-schema result#)]
          (merge inputs# result'#)))))
 
+(defn ns-workflowfns
+  [ns-sym]
+  (->> ns-sym
+       (ns-publics)
+       (filter #(let [m (-> % second meta)]
+                  (and (contains? m :witan/workflowfn)
+                       (-> m :witan/workflowfn :witan/exported?))))
+       (map second)))
+
 ;; Helper fn for running tests that require inputs or outputs to be renamed.
 (defworkflowfn rename-keys
   {:witan/name          :_
