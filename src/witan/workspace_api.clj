@@ -21,14 +21,21 @@
 
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
-  [name meta-data args & body]
-  (let [{:keys [witan/input-schema
+  [name & body] ;; metadata args &body
+  (let [doc      (when (string? (first body)) (first body))
+        metadata (if doc (second body) (first body))
+        body     (if doc (drop 2 body) (next body))
+        args     (first body)
+        body     (next body)
+        doc      (or doc "No docs")
+        {:keys [witan/input-schema
                 witan/output-schema
-                witan/param-schema]} meta-data]
+                witan/param-schema]} metadata]
     `(defn ~(with-meta name
               (assoc (meta name)
                      :witan/workflowfn
-                     (s/validate WorkflowFnMetaData meta-data)))
+                     (s/validate WorkflowFnMetaData metadata)))
+       ~doc
        [inputs# & params#]
        (let [params'# (when (and (first params#) ~param-schema)
                         (select-schema-keys ~param-schema (first params#)))
@@ -47,8 +54,8 @@
                        (-> m :witan/workflowfn :witan/exported?))))
        (mapv second)))
 
-;; Helper fn for running tests that require inputs or outputs to be renamed.
 (defworkflowfn rename-keys
+  "Helper fn for running tests that require inputs or outputs to be renamed."
   {:witan/name          :_
    :witan/exported?     false
    :witan/version       ""
