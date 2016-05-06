@@ -2,10 +2,6 @@
 
 A helper library for writing models in the style of Witan workspaces.
 
-## Notes on Model authoring
-
-This library is designed to help ...
-
 ## API
 
 ### defworkflowfn
@@ -54,6 +50,25 @@ Use this macro to simulate a graph merge. Threads initial data into the first ar
 
 ```
 
+Be aware that if a workflow fn outputs the same key as an input, this will likely cause trouble as other forms will also be returning that key and the merge will be unpredictable.
+
+## Notes on Model authoring
+
+This library is designed to help develop models at both the workspace/workflow level and also the levels beneath. To this end, the `defworkflowfn` and associated macros (e.g. `merge->` are designed to assist in creating and simulating graph-compute-like behaviour. For example, where to simulate a diamond workflow, the following should suffice:
+
+```clojure
+;    1
+;   / \
+;  2a 2b
+;   \ /
+;    3
+
+(-> input
+    (function-one)
+    (merge-> (function-two-a)
+             (function-two-b))
+    (function-three))
+```
 
 ## License
 
