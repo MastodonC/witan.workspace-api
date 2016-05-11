@@ -53,7 +53,7 @@
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
-         {:input 1 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+         {:input 2 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
 
 (deftest merge-macro-test
   (testing "Does the merge-> macro operate as expected?"
