@@ -1,5 +1,6 @@
 (ns witan.workspace-api
-  (:require [schema.core :as s]))
+  (:require [schema.core :as s]
+            [clojure.set]))
 
 (defn select-schema-keys
   "Like select-keys but deduces keys from a schema and performs validation"
