@@ -45,7 +45,8 @@
          (merge inputs# result'#)))))
 
 (defmacro merge->
-  "Macro sending x to multiple forms and then merging the results"
+  "Macro sending x to multiple forms and then merging the results
+  TODO: Make this way more resiliant to inline functions and other macros (such as threading)"
   [x & forms]
   (let [split (map (fn [f]
                      (if (seq? f)

@@ -16,10 +16,10 @@
   {:witan/name          :witan.test-fns.mul2
    :witan/version       "1.0"
    :witan/exported?     true
-   :witan/input-schema  {:numberB s/Num}
+   :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberB s/Num}}
-  [{:keys [numberB]} _]
-  {:numberB (* 2 numberB)})
+  [{:keys [input]} _]
+  {:numberB (* 2 input)})
 
 (defworkflowfn mulX
   {:witan/name          :witan.test-fns.mulX
@@ -49,7 +49,7 @@
          (-> {:number 1 :foo "bar"}
              (rename-keys {:number :input})
              (inc*)
-             (rename-keys {:numberA :numberB})
+             (rename-keys {:numberA :input})
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
@@ -98,3 +98,25 @@
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}})))))
+
+(deftest merge-test
+  (testing "Does the merge-> macro work as intended?"
+    (is (= (merge-> {:input 3 :foo "bar"}
+                    (inc*)
+                    (mul2))
+           {:input 3 :foo "bar" :numberA 4 :numberB 6}))))
+
+(deftest select-schema-keys-test
+  (testing "Does the select-schema-keys macro work as intended?"
+    (is (= (select-schema-keys {:foo s/Num} {:foo 123 :bar "xyz"})
+           {:foo 123})))
+  (testing "Are non-maps rejected?"
+    (is (thrown-with-msg?
+         Exception
+         #"Schema must be a map"
+         (select-schema-keys s/Num 123))))
+  (testing "Do bad inputs cause a validation fail?"
+    (is (thrown-with-msg?
+         Exception
+         #"Value does not match schema: \{:foo \(not \(instance\? java.lang.String 123\)\)\}"
+         (select-schema-keys {:foo s/Str} {:foo 123})))))
