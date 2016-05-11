@@ -99,13 +99,6 @@
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}})))))
 
-(deftest merge-test
-  (testing "Does the merge-> macro work as intended?"
-    (is (= (merge-> {:input 3 :foo "bar"}
-                    (inc*)
-                    (mul2))
-           {:input 3 :foo "bar" :numberA 4 :numberB 6}))))
-
 (deftest select-schema-keys-test
   (testing "Does the select-schema-keys macro work as intended?"
     (is (= (select-schema-keys {:foo s/Num} {:foo 123 :bar "xyz"})
