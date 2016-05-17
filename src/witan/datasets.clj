@@ -19,11 +19,6 @@
     ([a x]
      (map #(%1 %2 %3) fns a x))))
 
-(defn map-vals
-  [f m]
-  (zipmap (keys m)
-          (map f (vals m))))
-
 (def rollup-fns
   {:max [identity max identity]
    :min [identity min identity]
