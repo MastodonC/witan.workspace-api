@@ -1,4 +1,4 @@
-(ns witan.datasets.tests
+(ns witan.datasets-tests
   (:require [witan.datasets :as wds]
             [clojure.core.matrix.dataset :as ds]
             [clojure.test :refer :all]))
