@@ -1,12 +1,11 @@
 (ns witan.workspace-api
-  (:require [schema.core :as s]
-            [clojure.set]))
+  (:require [schema.core :as s]))
 
 (defn select-schema-keys
   "Like select-keys but deduces keys from a schema and performs validation"
   [schema m]
   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
-  (let [has-any? (fn [x] (some #(= (type %) schema.core.AnythingSchema) x))
+  (let [has-any? (fn [x] (some #(= % s/Keyword) x))
         in-keys  (if (-> schema keys has-any?) [] (-> schema keys))
         result (if (seq in-keys) (select-keys m (vec in-keys)) m)]
     (s/validate schema result)))
@@ -17,6 +16,7 @@
    :witan/version       s/Str
    :witan/input-schema  {s/Any s/Any}
    :witan/output-schema {s/Any s/Any}
+   :witan/doc           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
@@ -29,6 +29,7 @@
         args     (first body)
         body     (next body)
         doc      (or doc "No docs")
+        metadata (assoc metadata :witan/doc doc)
         {:keys [witan/input-schema
                 witan/output-schema
                 witan/param-schema]} metadata]
@@ -54,24 +55,3 @@
                        (vector (first f) (-> f rest vec))
                        (vector f []))) forms)]
     `(apply merge (map (fn [[f# args#]] (apply f# ~x args#)) (list ~@split)))))
-
-(defn ns-workflowfns
-  "Fetches exported workflowfns from a ns"
-  [ns-sym]
-  (->> ns-sym
-       (ns-publics)
-       (filter #(let [m (-> % second meta)]
-                  (and (contains? m :witan/workflowfn)
-                       (-> m :witan/workflowfn :witan/exported?))))
-       (mapv second)))
-
-(defworkflowfn rename-keys
-  "Helper fn for running tests that require inputs or outputs to be renamed."
-  {:witan/name          :_
-   :witan/exported?     false
-   :witan/version       ""
-   :witan/input-schema  {s/Any s/Any}
-   :witan/output-schema {s/Any s/Any}
-   :witan/param-schema  {s/Any s/Keyword}}
-  [inputs renames]
-  (clojure.set/rename-keys inputs renames))

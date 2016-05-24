@@ -1,9 +1,11 @@
 (ns witan.workspace-api-test
   (:require [clojure.test :refer :all]
             [schema.core :as s]
-            [witan.workspace-api :refer :all]))
+            [witan.workspace-api :refer :all]
+            [witan.workspace-api.functions :refer :all]))
 
 (defworkflowfn inc*
+  "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
    :witan/version       "1.0"
    :witan/exported?     true
@@ -62,14 +64,6 @@
                     (mulX {:multiple 3}))
            {:input 2 :numberA 3 :numberC 4 :number 12}))))
 
-(deftest find-workflowfn-test
-  (testing "Can we find all the exported workflow functions in this namespace?"
-    (is (= (ns-workflowfns 'witan.workspace-api-test)
-           [#'witan.workspace-api-test/inc*
-            #'witan.workspace-api-test/mul2
-            #'witan.workspace-api-test/broken
-            #'witan.workspace-api-test/mulX]))))
-
 (deftest schema-errors-test
   (testing "Does the macro catch errors in input schema?"
     (is (thrown-with-msg?
@@ -97,7 +91,8 @@
               :witan/version       "1.0"
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
-              :witan/output-schema {:numberA s/Num}})))))
+              :witan/output-schema {:numberA s/Num}
+              :witan/doc "inc* has a doc-string"})))))
 
 (deftest select-schema-keys-test
   (testing "Does the select-schema-keys macro work as intended?"
@@ -113,3 +108,8 @@
          Exception
          #"Value does not match schema: \{:foo \(not \(instance\? java.lang.String 123\)\)\}"
          (select-schema-keys {:foo s/Str} {:foo 123})))))
+
+(deftest doc-string-test
+  (testing "Is the doc-string of a function persisted in the :witan/doc meta key?"
+    (= "inc* has a doc-string"
+       (-> (meta #'inc*) :witan/workflowfn :witan/doc))))
