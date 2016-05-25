@@ -1,4 +1,4 @@
-(defproject witan.workspace-api "0.1.0-SNAPSHOT"
+(defproject witan.workspace-api "0.1.0"
   :description "A helper library for writing models in the style of Witan workspaces."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
