@@ -6,7 +6,7 @@
   [schema m]
   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
   (let [has-any? (fn [x] (some #(= % s/Keyword) x))
-        in-keys  (if (-> schema keys has-any?) [] (-> schema keys))
+        in-keys  (if (-> schema keys has-any?) [] (keys schema))
         result (if (seq in-keys) (select-keys m (vec in-keys)) m)]
     (s/validate schema result)))
 

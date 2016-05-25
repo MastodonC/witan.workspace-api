@@ -136,5 +136,5 @@
 
 (deftest doc-string-test
   (testing "Is the doc-string of a function persisted in the :witan/doc meta key?"
-    (= "inc* has a doc-string"
-       (-> (meta #'inc*) :witan/workflowfn :witan/doc))))
+    (is (= "inc* has a doc-string"
+           (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
