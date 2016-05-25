@@ -7,8 +7,7 @@
   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
   (let [has-any? (fn [x] (some #(= % :*) x))
         schema' (clojure.set/rename-keys schema {:* s/Keyword})
-        in-keys  (if (-> schema keys has-any?) [] (keys schema))
-        result (if (seq in-keys) (select-keys m (vec in-keys)) m)]
+        result (if (not (-> schema keys has-any?)) (select-keys m (keys schema)) m)]
     (s/validate schema' result)))
 
 (def WorkflowFnMetaData
