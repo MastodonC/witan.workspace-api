@@ -50,15 +50,8 @@
          (merge inputs# result'#)))))
 
 (defmacro merge->
-  "Macro sending x to multiple forms and then merging the results
-  TODO: Make this way more resiliant to inline functions and other macros (such as threading)"
   [data & forms]
-  (loop [forms forms, result `(apply merge)]
-    (if forms
-      (let [form (first forms)
-            result (concat result (list `(-> ~data ~form)))]
-        (recur (next forms) result))
-      result)))
+  `(apply merge ~@(map list (repeat '->) (repeat data) forms)))
 
 (defmacro do-while->
   "Macro which threads data to forms whilst predicate. Guaranteed
