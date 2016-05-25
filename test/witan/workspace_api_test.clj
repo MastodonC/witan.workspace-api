@@ -14,6 +14,15 @@
   [{:keys [input]} _]
   {:numberA (+ input 1)})
 
+(defworkflowfn inc-loop
+  {:witan/name          :witan.test-fns.inc2
+   :witan/version       "1.0"
+   :witan/exported?     true
+   :witan/input-schema  {:number s/Num}
+   :witan/output-schema {:number s/Num}}
+  [{:keys [number]} _]
+  {:number (+ number 1)})
+
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
    :witan/version       "1.0"
@@ -43,6 +52,10 @@
   [{:keys [foo]} {:keys [baz]}]
   {:bar (+ foo baz)})
 
+(defn not-enough?
+  [{:keys [number]}]
+  (< number 5))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest happy-thread-test
@@ -62,7 +75,19 @@
     (is (= (merge-> {:input 2 :numberC 4}
                     inc*
                     (mulX {:multiple 3}))
+           {:input 2 :numberA 3 :numberC 4 :number 12})))
+  (testing "Does the merge-> macro allow inline fns and embedded macros?"
+    (is (= (merge-> {:input 2 :numberC 4}
+                    (-> inc*)
+                    ((fn [x] (mulX x {:multiple 3}))))
            {:input 2 :numberA 3 :numberC 4 :number 12}))))
+
+(deftest do-while-macro-test
+  (testing "Does the do-while-> loop macro operate as expected?"
+    (is (= (do-while-> (not-enough?)
+             {:number 1}
+             (inc-loop))
+           {:number 5}))))
 
 (deftest schema-errors-test
   (testing "Does the macro catch errors in input schema?"

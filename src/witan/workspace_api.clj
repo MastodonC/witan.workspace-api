@@ -49,9 +49,20 @@
 (defmacro merge->
   "Macro sending x to multiple forms and then merging the results
   TODO: Make this way more resiliant to inline functions and other macros (such as threading)"
-  [x & forms]
-  (let [split (map (fn [f]
-                     (if (seq? f)
-                       (vector (first f) (-> f rest vec))
-                       (vector f []))) forms)]
-    `(apply merge (map (fn [[f# args#]] (apply f# ~x args#)) (list ~@split)))))
+  [data & forms]
+  (loop [forms forms, result `(apply merge)]
+    (if forms
+      (let [form (first forms)
+            result (concat result (list `(-> ~data ~form)))]
+        (recur (next forms) result))
+      result)))
+
+(defmacro do-while->
+  "Macro which threads data to forms whilst predicate. Guaranteed
+   to execute once."
+  [predicate data & forms]
+  `(loop [x# ~data]
+     (let [result# (-> x# ~@forms)]
+       (if (-> result# ~predicate)
+         (recur result#)
+         result#))))
