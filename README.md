@@ -52,6 +52,23 @@ Use this macro to simulate a graph merge. Initial data is threaded as the first 
 
 Be aware that if a workflow fn outputs the same key as an input, this will likely cause trouble as other forms will also be returning that key and the merge will be unpredictable.
 
+### do-while->
+
+Use this macro to simulate a loop which executes at least once. First arg is a predicate which receives the data prior to each iteration. Initial data is threaded as the first arg of each form. Forms *should* be workflow fns. 
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowfn do-while->]]
+
+;; assumes you have some workflow fns defined
+
+(do-while-> (number-lt-10)
+         {:number 1}
+         (inc-loop) ;; returns {:number (inc number)}
+         (double-loop) ;; returns {:number (* 2 number)}
+=> {:number 14}
+
+```
+
 ## Notes on Model authoring
 
 This library is designed to help develop models at both the workspace/workflow level and also the levels beneath. To this end, the `defworkflowfn` and associated macros (e.g. `merge->`) are designed to assist in creating and simulating graph-compute-like behaviour. For example, where to simulate a diamond workflow, the following should suffice:
