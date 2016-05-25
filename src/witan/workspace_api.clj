@@ -14,8 +14,8 @@
   "Schema for the Witan workflow function metadata"
   {:witan/name          s/Keyword
    :witan/version       s/Str
-   :witan/input-schema  {s/Any s/Any}
-   :witan/output-schema {s/Any s/Any}
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/output-schema {s/Keyword s/Any}
    :witan/doc           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
