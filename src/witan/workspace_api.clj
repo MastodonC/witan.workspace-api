@@ -1,12 +1,15 @@
 (ns witan.workspace-api
   (:require [schema.core :as s]))
 
+(def wildcard-keyword
+  :*)
+
 (defn select-schema-keys
   "Like select-keys but deduces keys from a schema and performs validation"
   [schema m]
   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
-  (let [has-any? (fn [x] (some #(= % :*) x))
-        schema' (clojure.set/rename-keys schema {:* s/Keyword})
+  (let [has-any? (fn [x] (some #(= % wildcard-keyword) x))
+        schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
         result (if (not (-> schema keys has-any?)) (select-keys m (keys schema)) m)]
     (s/validate schema' result)))
 
