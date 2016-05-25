@@ -1,22 +1,25 @@
 (ns witan.workspace-api
-  (:require [schema.core :as s]
-            [clojure.set]))
+  (:require [schema.core :as s]))
+
+(def wildcard-keyword
+  :*)
 
 (defn select-schema-keys
   "Like select-keys but deduces keys from a schema and performs validation"
   [schema m]
   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
-  (let [has-any? (fn [x] (some #(= (type %) schema.core.AnythingSchema) x))
-        in-keys  (if (-> schema keys has-any?) [] (-> schema keys))
-        result (if (seq in-keys) (select-keys m (vec in-keys)) m)]
-    (s/validate schema result)))
+  (let [has-any? (fn [x] (some #(= % wildcard-keyword) x))
+        schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
+        result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
+    (s/validate schema' result)))
 
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
   {:witan/name          s/Keyword
    :witan/version       s/Str
-   :witan/input-schema  {s/Any s/Any}
-   :witan/output-schema {s/Any s/Any}
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/output-schema {s/Keyword s/Any}
+   :witan/doc           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
@@ -29,6 +32,7 @@
         args     (first body)
         body     (next body)
         doc      (or doc "No docs")
+        metadata (assoc metadata :witan/doc doc)
         {:keys [witan/input-schema
                 witan/output-schema
                 witan/param-schema]} metadata]
@@ -46,32 +50,15 @@
          (merge inputs# result'#)))))
 
 (defmacro merge->
-  "Macro sending x to multiple forms and then merging the results
-  TODO: Make this way more resiliant to inline functions and other macros (such as threading)"
-  [x & forms]
-  (let [split (map (fn [f]
-                     (if (seq? f)
-                       (vector (first f) (-> f rest vec))
-                       (vector f []))) forms)]
-    `(apply merge (map (fn [[f# args#]] (apply f# ~x args#)) (list ~@split)))))
+  [data & forms]
+  `(apply merge ~@(map list (repeat '->) (repeat data) forms)))
 
-(defn ns-workflowfns
-  "Fetches exported workflowfns from a ns"
-  [ns-sym]
-  (->> ns-sym
-       (ns-publics)
-       (filter #(let [m (-> % second meta)]
-                  (and (contains? m :witan/workflowfn)
-                       (-> m :witan/workflowfn :witan/exported?))))
-       (mapv second)))
-
-(defworkflowfn rename-keys
-  "Helper fn for running tests that require inputs or outputs to be renamed."
-  {:witan/name          :_
-   :witan/exported?     false
-   :witan/version       ""
-   :witan/input-schema  {s/Any s/Any}
-   :witan/output-schema {s/Any s/Any}
-   :witan/param-schema  {s/Any s/Keyword}}
-  [inputs renames]
-  (clojure.set/rename-keys inputs renames))
+(defmacro do-while->
+  "Macro which threads data to forms whilst predicate. Guaranteed
+   to execute once."
+  [predicate data & forms]
+  `(loop [x# ~data]
+     (let [result# (-> x# ~@forms)]
+       (if (-> result# ~predicate)
+         (recur result#)
+         result#))))

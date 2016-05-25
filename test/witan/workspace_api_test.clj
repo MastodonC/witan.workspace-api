@@ -1,9 +1,11 @@
 (ns witan.workspace-api-test
   (:require [clojure.test :refer :all]
             [schema.core :as s]
-            [witan.workspace-api :refer :all]))
+            [witan.workspace-api :refer :all]
+            [witan.workspace-api.functions :refer :all]))
 
 (defworkflowfn inc*
+  "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
    :witan/version       "1.0"
    :witan/exported?     true
@@ -11,6 +13,15 @@
    :witan/output-schema {:numberA s/Num}}
   [{:keys [input]} _]
   {:numberA (+ input 1)})
+
+(defworkflowfn inc-loop
+  {:witan/name          :witan.test-fns.inc2
+   :witan/version       "1.0"
+   :witan/exported?     true
+   :witan/input-schema  {:number s/Num}
+   :witan/output-schema {:number s/Num}}
+  [{:keys [number]} _]
+  {:number (+ number 1)})
 
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
@@ -41,6 +52,10 @@
   [{:keys [foo]} {:keys [baz]}]
   {:bar (+ foo baz)})
 
+(defn not-enough?
+  [{:keys [number]}]
+  (< number 5))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest happy-thread-test
@@ -60,15 +75,19 @@
     (is (= (merge-> {:input 2 :numberC 4}
                     inc*
                     (mulX {:multiple 3}))
+           {:input 2 :numberA 3 :numberC 4 :number 12})))
+  (testing "Does the merge-> macro allow inline fns and embedded macros?"
+    (is (= (merge-> {:input 2 :numberC 4}
+                    (-> inc*)
+                    ((fn [x] (mulX x {:multiple 3}))))
            {:input 2 :numberA 3 :numberC 4 :number 12}))))
 
-(deftest find-workflowfn-test
-  (testing "Can we find all the exported workflow functions in this namespace?"
-    (is (= (ns-workflowfns 'witan.workspace-api-test)
-           [#'witan.workspace-api-test/inc*
-            #'witan.workspace-api-test/mul2
-            #'witan.workspace-api-test/broken
-            #'witan.workspace-api-test/mulX]))))
+(deftest do-while-macro-test
+  (testing "Does the do-while-> loop macro operate as expected?"
+    (is (= (do-while-> (not-enough?)
+             {:number 1}
+             (inc-loop))
+           {:number 5}))))
 
 (deftest schema-errors-test
   (testing "Does the macro catch errors in input schema?"
@@ -97,7 +116,8 @@
               :witan/version       "1.0"
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
-              :witan/output-schema {:numberA s/Num}})))))
+              :witan/output-schema {:numberA s/Num}
+              :witan/doc "inc* has a doc-string"})))))
 
 (deftest select-schema-keys-test
   (testing "Does the select-schema-keys macro work as intended?"
@@ -113,3 +133,8 @@
          Exception
          #"Value does not match schema: \{:foo \(not \(instance\? java.lang.String 123\)\)\}"
          (select-schema-keys {:foo s/Str} {:foo 123})))))
+
+(deftest doc-string-test
+  (testing "Is the doc-string of a function persisted in the :witan/doc meta key?"
+    (is (= "inc* has a doc-string"
+           (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
