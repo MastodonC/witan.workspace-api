@@ -23,6 +23,23 @@
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
+(def WorkflowModelMetaData
+  "Schema for the Witan workflow model metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/doc           s/Str})
+
+(def WorkflowStatement
+  [(s/one s/Keyword "ingress") (s/one (s/if keyword?
+                                        s/Keyword
+                                        [(s/one s/Any "predicate") 
+                                         (s/one s/Keyword "predicate-true")
+                                         (s/one s/Keyword "predicate-false")]) "egress")])
+
+(def WorkflowModel
+  "Schema for the Witan workflow model metadata"
+  [WorkflowStatement])
+
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
   [name & body] ;; metadata args &body
@@ -48,6 +65,22 @@
              result#  ((fn ~args ~@body) inputs'# params'#)
              result'# (select-schema-keys ~output-schema result#)]
          (merge inputs# result'#)))))
+
+
+(defmacro defworkflowmodel
+  "Macro for defining a workflow model"
+  [name & body] ;; metadata args &body
+  (let [doc      (when (string? (first body)) (first body))
+        metadata (if doc (second body) (first body))
+        body     (if doc (drop 2 body) (next body))
+        doc      (or doc "No docs")
+        metadata (assoc metadata :witan/doc doc)]
+    `(def ~(with-meta name
+              (assoc (meta name)
+                     :witan/workflowmodel
+                     (s/validate WorkflowModelMetaData metadata)))
+       ~doc
+       ~@body)))
 
 (defmacro merge->
   [data & forms]
