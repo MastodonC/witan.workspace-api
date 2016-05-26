@@ -11,7 +11,7 @@ Use this macro to define functions that represents 'nodes' in a workflow. It sho
 ```clojure
 (require '[witan.workspace-api :refer [defworkflowfn]]
          '[schema.core :as s])
-   
+
 (defworkflowfn my-function
   "This is a docstring" ;; optional
   {:witan/name          :my-namespace/function-name
@@ -22,21 +22,39 @@ Use this macro to define functions that represents 'nodes' in a workflow. It sho
    :witan/exported?     false}              ;; optional, defaults to false
   [inputs params]
   {:new-number (* (:number inputs) (:multiplier params))})
-   
+
 ;; Use as a normal function - `params` optional if not used
 (my-function {:number 4} {:multiplier 3))
 => {:number 4 :new-number 12}
 ```
 
 The macro wraps a standard function to provide some extra functionality:
-* It adds the metadata specified in the map (using `with-meta`).
+
 * It controls the arguments so that the fn only receives keys that match the schema. For this reason, schemas *must* be a map.
 * Whilst only providing what's specified in the _input schema_, the fn will only accept, as a return value, a map that validates against the _output schema_. Extraneous keys will be culled.
 * The return value is merged with the original input map, so that it will accrete over time.
 
+### defworkflowmodel
+
+Use this macro to define a workflow for a model. All model workflows defined this way will be exported and be made available upon request.
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowmodel]]
+         '[schema.core :as s])
+
+(defworkflowmodel my-model
+  "This is a docstring" ;; optional
+  {:witan/name          :my-namespace/model-name
+   :witan/version       "1.0"}
+  [:in    :task1
+   :task1 :task2
+   :task3 [:done? :task4 :task1]
+   :task4 :out)
+```
+
 ### merge->
 
-Use this macro to simulate a graph merge. Initial data is threaded as the first arg of each form, then the results are merged. Forms *should* be workflow fns (at the least, they must return a map). 
+Use this macro to simulate a graph merge. Initial data is threaded as the first arg of each form, then the results are merged. Forms *should* be workflow fns (at the least, they must return a map).
 
 ```clojure
 (require '[witan.workspace-api :refer [defworkflowfn merge->]]
@@ -54,7 +72,7 @@ Be aware that if a workflow fn outputs the same key as an input, this will likel
 
 ### do-while->
 
-Use this macro to simulate a loop which executes at least once. First arg is a predicate which receives the data prior to each iteration. Initial data is threaded as the first arg of each form. Forms *should* be workflow fns. 
+Use this macro to simulate a loop which executes at least once. First arg is a predicate which receives the data prior to each iteration. Initial data is threaded as the first arg of each form. Forms *should* be workflow fns.
 
 ```clojure
 (require '[witan.workspace-api :refer [defworkflowfn do-while->]]
