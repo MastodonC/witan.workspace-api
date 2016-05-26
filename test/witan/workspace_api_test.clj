@@ -112,12 +112,14 @@
       (is m)
       (is (contains? m :witan/workflowfn))
       (is (= (:witan/workflowfn m)
-             {:witan/name          :witan.test-fns.inc
-              :witan/version       "1.0"
-              :witan/exported?     true
-              :witan/input-schema  {:input s/Num}
-              :witan/output-schema {:numberA s/Num}
-              :witan/doc "inc* has a doc-string"})))))
+             {:witan/name :witan.test-fns.inc,
+              :witan/version "1.0",
+              :witan/exported? true,
+              :witan/input-schema {:input java.lang.Number},
+              :witan/output-schema {:numberA java.lang.Number},
+              :witan/doc "inc* has a doc-string",
+              :witan/input-schema-hash {:input "0e059c2f8cd0a779823729c6a49c6641fd3d1564"},
+              :witan/output-schema-hash {:numberA "0e059c2f8cd0a779823729c6a49c6641fd3d1564"}})))))
 
 (deftest select-schema-keys-test
   (testing "Does the select-schema-keys macro work as intended?"

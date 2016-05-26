@@ -1,5 +1,6 @@
 (ns witan.workspace-api
-  (:require [schema.core :as s]))
+  (:require [schema.core :as s]
+            [pandect.algo.sha1 :refer [sha1]]))
 
 (def wildcard-keyword
   :*)
@@ -19,7 +20,11 @@
    :witan/version       s/Str
    :witan/input-schema  {s/Keyword s/Any}
    :witan/output-schema {s/Keyword s/Any}
-   :witan/doc           s/Str
+   ;; added automatically
+   :witan/doc                s/Str
+   :witan/input-schema-hash  {s/Keyword s/Str}
+   :witan/output-schema-hash {s/Keyword s/Str}
+   (s/optional-key :witan/param-schema-hash)  {s/Keyword s/Str}
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
@@ -32,10 +37,17 @@
         args     (first body)
         body     (next body)
         doc      (or doc "No docs")
-        metadata (assoc metadata :witan/doc doc)
+        hashify  (partial reduce-kv (fn [a k v] (assoc a k (-> v str sha1))) {})
         {:keys [witan/input-schema
                 witan/output-schema
-                witan/param-schema]} metadata]
+                witan/param-schema]} metadata
+        metadata (assoc metadata
+                        :witan/doc doc
+                        :witan/input-schema-hash  (hashify input-schema)
+                        :witan/output-schema-hash (hashify output-schema))
+        metadata (if param-schema
+                   (assoc metadata :witan/param-schema-hash  (hashify param-schema))
+                   metadata)]
     `(defn ~(with-meta name
               (assoc (meta name)
                      :witan/workflowfn
