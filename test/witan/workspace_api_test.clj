@@ -138,3 +138,26 @@
   (testing "Is the doc-string of a function persisted in the :witan/doc meta key?"
     (is (= "inc* has a doc-string"
            (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
+
+(defworkflowmodel default-model
+  "doc"
+  {:witan/name :default
+   :witan/version "1.0"}
+  [[:in :out]
+   [:shake [:pred :left :right]]
+   [:all :about]])
+
+(deftest workflowmodel
+  (is (= {:witan/name :default
+          :witan/version "1.0"
+          :witan/doc "doc"}
+         (:witan/workflowmodel
+          (meta #'default-model))))
+  (is (= [[:in :out]
+          [:shake [:pred :left :right]]
+          [:all :about]]
+         default-model)))
+
+
+
+
