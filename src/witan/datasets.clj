@@ -49,27 +49,27 @@
         [xf accumulate finalizer] (if (keyword? summary-fun)
                                     (rollup-fns summary-fun)
                                     summary-fun)]
-    (->>
-     (cm/rows sub-data)
-     (r/map (fn transform
-              ([values]
-               [(grouper values) 
-                (xf (nth values (column-dexs col-name)))])))
-     (r/fold
-      (fn combiner 
-        ([] {})
-        ([l r]
-         (merge-with accumulate
-                     l r)))
-      (fn reducer
-        ([] {})
-        ([a [group value]]
-         (update a
-                 group
-                 #(if %
-                    (accumulate % value)
-                    (accumulate value))))))
-     (r/map (fn [[g v]]             
-              (conj g (finalizer v))))
-     (into [])
-     (ds/dataset (conj group-by col-name)))))
+    (->> sub-data
+         cm/rows
+         (r/map (fn transform
+                  ([values]
+                   [(grouper values)
+                    (xf (nth values (column-dexs col-name)))])))
+         (r/fold
+          (fn combiner
+            ([] {})
+            ([l r]
+             (merge-with accumulate
+                         l r)))
+          (fn reducer
+            ([] {})
+            ([a [group value]]
+             (update a
+                     group
+                     #(if %
+                        (accumulate % value)
+                        (accumulate value))))))
+         (r/map (fn [[g v]]
+                  (conj g (finalizer v))))
+         (into [])
+         (ds/dataset (conj group-by col-name)))))
