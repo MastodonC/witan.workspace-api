@@ -193,4 +193,4 @@
          (less-than {:number 2})))
     (is (= (greater-than-10 {:number 2}) false))
     (is (= (greater-than-10 {:number 12}) true))
-    (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) false))))
+    (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) true))))

@@ -43,7 +43,7 @@
 (def WorkflowStatement
   [(s/one s/Keyword "ingress") (s/one (s/if keyword?
                                         s/Keyword
-                                        [(s/one s/Any "predicate")
+                                        [(s/one s/Keyword "predicate")
                                          (s/one s/Keyword "predicate-true")
                                          (s/one s/Keyword "predicate-false")]) "egress")])
 
