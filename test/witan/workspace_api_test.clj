@@ -4,6 +4,7 @@
             [witan.workspace-api :refer :all]
             [witan.workspace-api.functions :refer :all]))
 
+;; functions
 (defworkflowfn inc*
   "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
@@ -52,11 +53,34 @@
   [{:keys [foo]} {:keys [baz]}]
   {:bar (+ foo baz)})
 
-(defn not-enough?
-  [{:keys [number]}]
-  (< number 5))
+;; model
+(defworkflowmodel default-model
+  "doc"
+  {:witan/name :default
+   :witan/version "1.0"}
+  [[:in :out]
+   [:shake [:pred :left :right]]
+   [:all :about]])
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; predicate
+(defworkflowpred less-than
+  "pred doc"
+  {:witan/name :witan.test-preds.less-than
+   :witan/version "1.0"
+   :witan/input-schema {:number s/Num}
+   :witan/param-schema {:value s/Num}}
+  [{:keys [number]} {:keys [value]}]
+  (< number value))
+
+(defworkflowpred greater-than-10
+  "pred doc"
+  {:witan/name :witan.test-preds.greater-than-10
+   :witan/version "1.0"
+   :witan/input-schema {:number s/Num}}
+  [{:keys [number]} _]
+  (> number 10))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest happy-thread-test
   (testing "Can the workflow functions be thread-first'ed?"
@@ -84,7 +108,7 @@
 
 (deftest do-while-macro-test
   (testing "Does the do-while-> loop macro operate as expected?"
-    (is (= (do-while-> (not-enough?)
+    (is (= (do-while-> (less-than {:value 5})
              {:number 1}
              (inc-loop))
            {:number 5}))))
@@ -139,25 +163,34 @@
     (is (= "inc* has a doc-string"
            (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
 
-(defworkflowmodel default-model
-  "doc"
-  {:witan/name :default
-   :witan/version "1.0"}
-  [[:in :out]
-   [:shake [:pred :left :right]]
-   [:all :about]])
-
 (deftest workflowmodel
-  (is (= {:witan/name :default
-          :witan/version "1.0"
-          :witan/doc "doc"}
-         (:witan/workflowmodel
-          (meta #'default-model))))
-  (is (= [[:in :out]
-          [:shake [:pred :left :right]]
-          [:all :about]]
-         default-model)))
+  (testing "models work"
+    (is (= {:witan/name :default
+            :witan/version "1.0"
+            :witan/doc "doc"}
+           (:witan/workflowmodel
+            (meta #'default-model))))
+    (is (= [[:in :out]
+            [:shake [:pred :left :right]]
+            [:all :about]]
+           default-model))))
 
-
-
-
+(deftest workflowpred-meta
+  (testing "Is predicate metadata applied?"
+    (is (= {:witan/name :witan.test-preds.less-than
+            :witan/version "1.0"
+            :witan/input-schema {:number s/Num}
+            :witan/param-schema {:value s/Num}
+            :witan/doc "pred doc"}
+           (:witan/workflowpred
+            (meta #'less-than)))))
+  (testing "Do predicates behave as expected?"
+    (is (= (less-than {:number 2} {:value 3}) true))
+    (is (= (less-than {:number 2} {:value 1}) false))
+    (is (thrown-with-msg?
+         Exception
+         #"Value does not match schema\: \{\:value missing-required-key\}"
+         (less-than {:number 2})))
+    (is (= (greater-than-10 {:number 2}) false))
+    (is (= (greater-than-10 {:number 12}) true))
+    (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) true))))
