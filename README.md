@@ -2,7 +2,7 @@
 
 A helper library for writing models in the style of Witan workspaces.
 
-## API
+## Defining Functions, Predicates and Models
 
 ### defworkflowfn
 
@@ -77,6 +77,8 @@ Use this macro to define a workflow for a model. All model workflows defined thi
    :task3 [:done? :task4 :task1]
    :task4 :out)
 ```
+
+## Helper Functions
 
 ### merge->
 
