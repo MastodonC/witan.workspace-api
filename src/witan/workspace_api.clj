@@ -73,6 +73,12 @@
         metadata (assoc metadata :witan/doc doc)]
     [doc metadata body]))
 
+(defn assign-meta
+  [name kw schema metadata]
+  `(alter-meta! #'~name assoc 
+                ~kw
+                (s/validate ~schema ~metadata)))
+
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
   [name & body] ;; metadata args &body
@@ -84,17 +90,15 @@
                              `(partial select-schema-keys ~param-schema)
                              `(constantly nil))
            actual-fn# (fn ~args ~@body)]
-       (defn ~(with-meta name
-                (assoc (meta name)
-                       :witan/workflowfn
-                       (s/validate WorkflowFnMetaData metadata)))
+       (defn ~name
          ~doc
          [inputs# & params#]
          (let [params'# (select-params# (first params#))
                inputs'# (select-schema-keys ~input-schema inputs#)
                result#  (actual-fn# inputs'# params'#)
                result'# (select-schema-keys ~output-schema result#)]
-           (merge inputs# result'#))))))
+           (merge inputs# result'#)))
+     ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
@@ -106,27 +110,29 @@
                              `(partial select-schema-keys ~param-schema)
                              `(constantly nil))
            actual-fn# (fn ~args ~@body)]
-       (defn ~(with-meta name
-                (assoc (meta name)
-                       :witan/workflowpred
-                       (s/validate WorkflowPredicateMetaData metadata)))
+       (defn ~name
          ~doc
          [inputs# & params#]
          (let [params'# (select-params# (first params#))
                inputs'# (select-schema-keys ~input-schema inputs#)
                result#  (actual-fn# inputs'# params'#)]
-           (boolean result#))))))
+           (boolean result#)))
+       ~(assign-meta name :witan/workflowpred WorkflowPredicateMetaData metadata))))
 
 (defmacro defworkflowmodel
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)]
-    `(def ~(with-meta name
-             (assoc (meta name)
-                    :witan/workflowmodel
-                    (s/validate WorkflowModelMetaData metadata)))
-       ~doc
-       ~@body)))
+    `(do
+       (def ~(with-meta name
+               (assoc (meta name)
+                      :witan/workflowmodel
+                      (s/validate WorkflowModelMetaData metadata)))
+         ~doc
+         ~@body)
+       ~(assign-meta name 
+                     :witan/workflowmodel
+                     WorkflowModelMetaData metadata))))
 
 (defn workflowput
   [kw schema name body]
@@ -134,9 +140,9 @@
     `(do
        (def ~name
          ~doc)
-       (alter-meta! #'~name assoc 
-                    ~kw
-                    (s/validate ~schema ~metadata)))))
+       ~(assign-meta name 
+                    kw
+                    schema metadata))))
 
 (defmacro defworkflowinput
   "Macro for defining a workflow input"
