@@ -124,10 +124,7 @@
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)]
     `(do
-       (def ~(with-meta name
-               (assoc (meta name)
-                      :witan/workflowmodel
-                      (s/validate WorkflowModelMetaData metadata)))
+       (def ~name
          ~doc
          ~@body)
        ~(assign-meta name 
