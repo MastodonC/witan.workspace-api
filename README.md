@@ -74,11 +74,17 @@ Use this macro to define a workflow for a model. All model workflows defined thi
   "This is a docstring" ;; optional
   {:witan/name          :my-namespace/model-name
    :witan/version       "1.0"}
-  [:in    :task1
-   :task1 :task2
-   :task3 [:done? :task4 :task1]
-   :task4 :out)
+  [[:in    :task1]
+   [:task1 :task2]
+   [:task3 [:continue? :task4 :task1]]
+   [:task4 :out]])
 ```
+
+Models consist of tuples that are either...
+* Two keywords, corresponding to the 'from' to 'to' nodes in a graph. E.g. `[:in :task1]`
+* A keyword ('from') and a 3-element tuple - predicate name, 'to' node and 'else' node. E.g. `[:task3 [:continue? :task4 :task1]]`
+
+There is no restriction of the polarity of the predicate, but it's recommended the predicate checks the propagation (rather than termination) of the loop. This follows the semantics of 'do while' rather than 'do until'.
 
 ### defworkflowinput
 
@@ -126,7 +132,7 @@ Use this macro to define the schema for a required input into a model.
 (require '[witan.workspace-api :refer [defworkflowmodel]]
          '[schema.core :as s])
 
-(def AnInputSchema 
+(def AnInputSchema
   {:number s/Num})
 
 (defworkflowinput an-input
@@ -134,7 +140,7 @@ Use this macro to define the schema for a required input into a model.
    :witan/version "1.0"
    :witan/doc "doc"
    :witan/input-schema AnInputSchema})
-``` 
+```
 
 ### defworkflowoutput
 
@@ -144,7 +150,7 @@ Use this macro to define the schema for a models outputs.
 (require '[witan.workspace-api :refer [defworkflowmodel]]
          '[schema.core :as s])
 
-(def AnOutputSchema 
+(def AnOutputSchema
   {:number s/Num})
 
 (defworkflowoutput an-output
@@ -152,7 +158,7 @@ Use this macro to define the schema for a models outputs.
    :witan/version "1.0"
    :witan/doc "doc"
    :witan/output-schema AnOutputSchema})
-``` 
+```
 
 ### merge->
 

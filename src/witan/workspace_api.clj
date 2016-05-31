@@ -69,13 +69,13 @@
   (let [doc      (when (string? (first body)) (first body))
         metadata (if doc (second body) (first body))
         body     (if doc (drop 2 body) (next body))
-        doc      (or doc (:witan/doc metadata) "No docs")     
+        doc      (or doc (:witan/doc metadata) "No docs")
         metadata (assoc metadata :witan/doc doc)]
     [doc metadata body]))
 
 (defn assign-meta
   [name kw schema metadata]
-  `(alter-meta! #'~name assoc 
+  `(alter-meta! #'~name assoc
                 ~kw
                 (s/validate ~schema ~metadata)))
 
@@ -122,12 +122,13 @@
 (defmacro defworkflowmodel
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
-  (let [[doc metadata body] (carve-body body)]
+  (let [[doc metadata body] (carve-body body)
+        _ (s/validate WorkflowModel body)]
     `(do
        (def ~name
          ~doc
          ~@body)
-       ~(assign-meta name 
+       ~(assign-meta name
                      :witan/workflowmodel
                      WorkflowModelMetaData metadata))))
 
@@ -137,7 +138,7 @@
     `(do
        (def ~name
          ~doc)
-       ~(assign-meta name 
+       ~(assign-meta name
                     kw
                     schema metadata))))
 
