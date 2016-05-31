@@ -212,3 +212,21 @@
             :witan/input-schema AnInputSchema}
            (:witan/workflowinput
             (meta #'an-input))))))
+
+(def AnOutputSchema 
+  {:number s/Num})
+
+(defworkflowoutput an-output
+  {:witan/name :an-output
+   :witan/version "1.0"
+   :witan/doc "doc"
+   :witan/output-schema AnOutputSchema})
+
+(deftest workflowoutput
+  (testing "output work"
+    (is (= {:witan/name :an-output
+            :witan/version "1.0"
+            :witan/doc "doc"
+            :witan/output-schema AnOutputSchema}
+           (:witan/workflowoutput
+            (meta #'an-output))))))
