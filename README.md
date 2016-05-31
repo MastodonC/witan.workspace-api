@@ -34,6 +34,32 @@ The macro wraps a standard function to provide some extra functionality:
 * Whilst only providing what's specified in the _input schema_, the fn will only accept, as a return value, a map that validates against the _output schema_. Extraneous keys will be culled.
 * The return value is merged with the original input map, so that it will accrete over time.
 
+### defworkflowpred
+
+Use this macro to define a workflow predicate, used to control the flow of a loop (for example, using `do-while->`). They are structurally similar to workflow functions but only the truthiness of the return value is considered.
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowpred]]
+         '[schema.core :as s])
+
+(defworkflowpred my-predicate?
+  "This is a docstring" ;; optional
+  {:witan/name         :my-namespace/predicate-name
+   :witan/version      "1.0"
+   :witan/input-schema {:number s/Num}
+   :witan/param-schema {:value s/Num}}
+  [{:keys [number]} {:keys [value]}]
+  (< number value))
+
+  ;; In a do-while-> loop. The initial data (`{:number 1}`) is passed to the predicate via thread-first.
+
+  (do-while-> (my-predicate? {:value 10})
+         {:number 1}
+         (inc-loop) ;; returns {:number (inc number)}
+         (double-loop)) ;; returns {:number (* 2 number)}
+=> {:number 10}
+```
+
 ### defworkflowmodel
 
 Use this macro to define a workflow for a model. All model workflows defined this way will be exported and be made available upon request.
@@ -82,8 +108,8 @@ Use this macro to simulate a loop which executes at least once. First arg is a p
 (do-while-> (number-lt-10)
          {:number 1}
          (inc-loop) ;; returns {:number (inc number)}
-         (double-loop) ;; returns {:number (* 2 number)}
-=> {:number 14}
+         (double-loop)) ;; returns {:number (* 2 number)}
+=> {:number 10}
 
 ```
 
