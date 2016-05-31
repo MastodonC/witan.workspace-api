@@ -14,7 +14,6 @@
     (s/validate schema' result)))
 
 
-
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
   {:witan/name          s/Keyword
@@ -33,6 +32,27 @@
    :witan/doc           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
+
+(def WorkflowInputMetaData
+  "Schema for the Witan workflow input metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/doc           s/Str})
+
+(def WorkflowInputMetaData
+  "Schema for the Witan workflow output metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/doc           s/Str})
+
+(def WorkflowOutputMetaData
+  "Schema for the Witan workflow output metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/doc           s/Str})
 
 (def WorkflowModelMetaData
   "Schema for the Witan workflow model metadata"
@@ -118,7 +138,32 @@
        ~doc
        ~@body)))
 
+(defmacro defworkflowinput
+  "Macro for defining a workflow input"
+  [name & body] ;; metadata args &body
+  (let [doc      (when (string? (first body)) (first body))
+        metadata (if doc (second body) (first body))
+        doc      (or doc (:witan/doc metadata) "No docs")
+        metadata (assoc metadata :witan/doc doc)]
+    `(do
+       (def ~name
+         ~doc)
+       (alter-meta! #'~name assoc 
+                    :witan/workflowinput
+                    (s/validate WorkflowInputMetaData ~metadata)))))
 
+(defmacro defworkflowoutput
+  "Macro for defining a workflow output"
+  [name & body] ;; metadata args &body
+  (let [doc      (when (string? (first body)) (first body))
+        metadata (if doc (second body) (first body))
+        doc      (or doc "No docs")
+        metadata (assoc metadata :witan/doc doc)]
+    `(def ~(with-meta name
+             (assoc (meta name)
+                    :witan/workflowoutput
+                    (s/validate WorkflowOutputMetaData metadata)))
+       ~doc)))
 
 (defmacro merge->
   [data & forms]

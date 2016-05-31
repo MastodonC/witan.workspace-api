@@ -194,3 +194,21 @@
     (is (= (greater-than-10 {:number 2}) false))
     (is (= (greater-than-10 {:number 12}) true))
     (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) true))))
+
+(def AnInputSchema 
+  {:number s/Num})
+
+(defworkflowinput an-input
+  {:witan/name :an-input
+   :witan/version "1.0"
+   :witan/doc "doc"
+   :witan/input-schema AnInputSchema})
+
+(deftest workflowinput
+  (testing "input work"
+    (is (= {:witan/name :an-input
+            :witan/version "1.0"
+            :witan/doc "doc"
+            :witan/input-schema AnInputSchema}
+           (:witan/workflowinput
+            (meta #'an-input))))))
