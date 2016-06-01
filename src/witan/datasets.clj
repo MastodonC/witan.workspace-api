@@ -79,3 +79,56 @@
   (ds/add-column dataset derived-col-name
                  (apply (partial map derive-fn)
                         (map #(ds/column dataset %) src-col-names))))
+
+(defn row-count
+  "This should be added to core.matrix, and probably to the dataset protocol"
+  [dataset]
+  (first (:shape dataset)))
+
+(defn build-index [indexer inverse-indexer dataset]
+  (->> dataset
+       cm/rows
+       (r/fold
+        (fn combiner
+          ([] {})
+          ([l r]
+           (merge l r)))
+        (fn reducer
+          ([] {})
+          ([a row]
+           (assoc a
+                  (indexer row)
+                  (inverse-indexer row)))))))
+
+(defn column-values-fn
+  [dataset columns]
+  (let [col-indexes (map (partial ds/column-index dataset) columns)] 
+    (fn [row]
+      (map (partial nth row) col-indexes))))
+
+(defn join
+  "Left joins the two datasets by the values found in columns, where the left side of the join is left. 
+  Implementation assumes the cost of converting the left dataset to rows and then using fold to join right, will be
+  justified by the size of the data. Potential improve could be to detect the data size and if small perform the join by
+  creating new columns for the dataset, rather than growing the rows."
+  [columns left right]
+  (let [right-indexer (column-values-fn right columns)
+        unindexed-cols (remove (set columns) (ds/column-names right))
+        inverse-indexer (column-values-fn right unindexed-cols)
+        dex (build-index right-indexer inverse-indexer right)
+        left-indexer (column-values-fn left columns)]
+    (->> left
+         cm/rows
+         (r/fold
+          (fn combiner
+            ([] [])
+            ([l r]
+             (concat l r)))
+          (fn reducer
+            ([] [])
+            ([a row]
+             (conj a
+                   (concat row
+                           (get dex (left-indexer row)))))))
+         (ds/dataset (concat (ds/column-names left) 
+                             unindexed-cols)))))
