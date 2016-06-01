@@ -76,13 +76,13 @@ Use this macro to define a workflow for a model. All model workflows defined thi
    :witan/version       "1.0"}
   [[:in    :task1]
    [:task1 :task2]
-   [:task3 [:continue? :task4 :task1]]
+   [:task3 [:continue? :task1 :task4]]
    [:task4 :out]])
 ```
 
 Models consist of tuples that are either...
 * Two keywords, corresponding to the 'from' to 'to' nodes in a graph. E.g. `[:in :task1]`
-* A keyword ('from') and a 3-element tuple - predicate name, 'to' node and 'else' node. E.g. `[:task3 [:continue? :task4 :task1]]`
+* A keyword ('from') and a 3-element tuple - predicate name, 'to' node and 'else' node. E.g. `[:task3 [:continue? :task1 :task4]]`
 
 There is no restriction of the polarity of the predicate, but it's recommended the predicate checks the propagation (rather than termination) of the loop. This follows the semantics of 'do while' rather than 'do until'.
 
