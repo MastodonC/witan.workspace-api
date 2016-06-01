@@ -39,7 +39,7 @@
   :count -- the number of elements in each group
   :mean -- the mean of the data in each group
   or you can supply your own triple of [transformer, accumulator, finalizer]"
-  [summary-fun col-name group-by data]  
+  [data summary-fun col-name group-by]  
   (let [sub-data (ds/select-columns data (conj group-by col-name))
         column-dexs (into {} (map-indexed #(vector %2 %1) (:column-names sub-data)))
         grouper (fn [values]
@@ -75,7 +75,7 @@
          (ds/dataset (conj group-by col-name)))))
 
 (defn add-derived-column
-  [derived-col-name src-col-names derive-fn dataset]
+  [dataset derived-col-name src-col-names derive-fn]
   (ds/add-column dataset derived-col-name
                  (apply (partial map derive-fn)
                         (map #(ds/column dataset %) src-col-names))))

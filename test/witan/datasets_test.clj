@@ -54,7 +54,7 @@
     (is
      (=
       (get-in results [aggregate groupby])
-      (wds/rollup aggregate :value groupby data))
+      (wds/rollup data aggregate :value groupby))
      (str "Checking " aggregate " grouped by " groupby))))
 
 (def test-data
@@ -65,7 +65,7 @@
 (deftest add-derived-column-test
   (is
    (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) test-data))
-    (wds/add-derived-column :d [:a :b] * (ds/dataset test-data)))))
+    (wds/add-derived-column (ds/dataset test-data) :d [:a :b] *))))
 
 (deftest build-index-test
   (is
