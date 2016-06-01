@@ -14,7 +14,6 @@
     (s/validate schema' result)))
 
 
-
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
   {:witan/name          s/Keyword
@@ -34,6 +33,20 @@
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
+(def WorkflowInputMetaData
+  "Schema for the Witan workflow input metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/input-schema  {s/Keyword s/Any}
+   :witan/doc           s/Str})
+
+(def WorkflowOutputMetaData
+  "Schema for the Witan workflow output metadata"
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/output-schema  {s/Keyword s/Any}
+   :witan/doc           s/Str})
+
 (def WorkflowModelMetaData
   "Schema for the Witan workflow model metadata"
   {:witan/name          s/Keyword
@@ -51,74 +64,92 @@
   "Schema for the Witan workflow model metadata"
   [WorkflowStatement])
 
+(defn carve-body
+  [body]
+  (let [doc      (when (string? (first body)) (first body))
+        metadata (if doc (second body) (first body))
+        body     (if doc (drop 2 body) (next body))
+        doc      (or doc (:witan/doc metadata) "No docs")     
+        metadata (assoc metadata :witan/doc doc)]
+    [doc metadata body]))
 
+(defn assign-meta
+  [name kw schema metadata]
+  `(alter-meta! #'~name assoc 
+                ~kw
+                (s/validate ~schema ~metadata)))
 
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
   [name & body] ;; metadata args &body
-  (let [doc      (when (string? (first body)) (first body))
-        metadata (if doc (second body) (first body))
-        body     (if doc (drop 2 body) (next body))
-        args     (first body)
-        body     (next body)
-        doc      (or doc "No docs")
-        metadata (assoc metadata :witan/doc doc)
+  (let [[doc metadata [args & body]] (carve-body body)
         {:keys [witan/input-schema
                 witan/output-schema
                 witan/param-schema]} metadata]
-    `(defn ~(with-meta name
-              (assoc (meta name)
-                     :witan/workflowfn
-                     (s/validate WorkflowFnMetaData metadata)))
-       ~doc
-       [inputs# & params#]
-       (let [params'# (when ~param-schema
-                        (select-schema-keys ~param-schema (first params#)))
-             inputs'# (select-schema-keys ~input-schema inputs#)
-             result#  ((fn ~args ~@body) inputs'# params'#)
-             result'# (select-schema-keys ~output-schema result#)]
-         (merge inputs# result'#)))))
+    `(let [select-params# ~(if param-schema
+                             `(partial select-schema-keys ~param-schema)
+                             `(constantly nil))
+           actual-fn# (fn ~args ~@body)]
+       (defn ~name
+         ~doc
+         [inputs# & params#]
+         (let [params'# (select-params# (first params#))
+               inputs'# (select-schema-keys ~input-schema inputs#)
+               result#  (actual-fn# inputs'# params'#)
+               result'# (select-schema-keys ~output-schema result#)]
+           (merge inputs# result'#)))
+       ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
   [name & body] ;; metadata args &body
-  (let [doc      (when (string? (first body)) (first body))
-        metadata (if doc (second body) (first body))
-        body     (if doc (drop 2 body) (next body))
-        args     (first body)
-        body     (next body)
-        doc      (or doc "No docs")
-        metadata (assoc metadata :witan/doc doc)
+  (let [[doc metadata [args & body]] (carve-body body)
         {:keys [witan/input-schema
                 witan/param-schema]} metadata]
-    `(defn ~(with-meta name
-              (assoc (meta name)
-                     :witan/workflowpred
-                     (s/validate WorkflowPredicateMetaData metadata)))
-       ~doc
-       [inputs# & params#]
-       (let [params'# (when ~param-schema
-                        (select-schema-keys ~param-schema (first params#)))
-             inputs'# (select-schema-keys ~input-schema inputs#)
-             result#  ((fn ~args ~@body) inputs'# params'#)]
-         (boolean result#)))))
+    `(let [select-params# ~(if param-schema
+                             `(partial select-schema-keys ~param-schema)
+                             `(constantly nil))
+           actual-fn# (fn ~args ~@body)]
+       (defn ~name
+         ~doc
+         [inputs# & params#]
+         (let [params'# (select-params# (first params#))
+               inputs'# (select-schema-keys ~input-schema inputs#)
+               result#  (actual-fn# inputs'# params'#)]
+           (boolean result#)))
+       ~(assign-meta name :witan/workflowpred WorkflowPredicateMetaData metadata))))
 
 (defmacro defworkflowmodel
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
-  (let [doc      (when (string? (first body)) (first body))
-        metadata (if doc (second body) (first body))
-        body     (if doc (drop 2 body) (next body))
-        doc      (or doc "No docs")
-        metadata (assoc metadata :witan/doc doc)]
-    `(def ~(with-meta name
-             (assoc (meta name)
-                    :witan/workflowmodel
-                    (s/validate WorkflowModelMetaData metadata)))
-       ~doc
-       ~@body)))
+  (let [[doc metadata body] (carve-body body)]
+    `(do
+       (def ~name
+         ~doc
+         ~@body)
+       ~(assign-meta name 
+                     :witan/workflowmodel
+                     WorkflowModelMetaData metadata))))
 
+(defn workflowput
+  [kw schema name body]
+  (let [[doc metadata _] (carve-body body)]
+    `(do
+       (def ~name
+         ~doc)
+       ~(assign-meta name 
+                    kw
+                    schema metadata))))
 
+(defmacro defworkflowinput
+  "Macro for defining a workflow input"
+  [name & body] ;; metadata args &body
+  (workflowput :witan/workflowinput WorkflowInputMetaData name body))
+
+(defmacro defworkflowoutput
+  "Macro for defining a workflow output"
+  [name & body] ;; metadata args &body
+  (workflowput :witan/workflowoutput WorkflowOutputMetaData name body))
 
 (defmacro merge->
   [data & forms]
