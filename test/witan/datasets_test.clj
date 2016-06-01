@@ -1,4 +1,4 @@
-(ns witan.datasets-tests
+(ns witan.datasets-test
   (:require [witan.datasets :as wds]
             [clojure.core.matrix.dataset :as ds]
             [clojure.test :refer :all]))
@@ -54,15 +54,36 @@
     (is
      (=
       (get-in results [aggregate groupby])
-      (wds/rollup aggregate :value groupby data))
+      (wds/rollup data aggregate :value groupby))
      (str "Checking " aggregate " grouped by " groupby))))
 
-(def add-derived-column-data
+(def test-data
   (map zipmap
        (repeat [:a :b :c]) 
-       (map #(vector % % %) (range 5))))
+       (map #(vector % % %) (range 100000))))
 
 (deftest add-derived-column-test
   (is
-   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) add-derived-column-data))
-    (wds/add-derived-column :d [:a :b] * (ds/dataset add-derived-column-data)))))
+   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) test-data))
+    (wds/add-derived-column (ds/dataset test-data) :d [:a :b] *))))
+
+(deftest build-index-test
+  (is
+   (= (zipmap (map (comp first vals) test-data) (map (comp rest vals) test-data))
+      (wds/build-index first rest (ds/dataset test-data)))))
+
+(deftest join-test
+  (let [right (ds/dataset (map #(-> %
+                                    (assoc :d (:a %))
+                                    (dissoc :a))
+                               test-data))
+        joined (wds/join (ds/dataset test-data) right [:b :c])]
+    (is
+     (= (wds/row-count joined)
+        (wds/row-count right)
+        (count test-data)))
+    (is
+     (every? #(= (:d %) (:a %)) (ds/row-maps joined)))
+    (is
+     (= '(:a :b :c :d)
+        (ds/column-names joined)))))

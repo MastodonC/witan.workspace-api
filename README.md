@@ -2,6 +2,8 @@
 
 A helper library for writing models in the style of Witan workspaces.
 
+## Defining Functions, Perficates and Models
+
 ## API
 
 ### defworkflowfn
@@ -86,6 +88,44 @@ Use this macro to define the schema for a required input into a model.
 (require '[witan.workspace-api :refer [defworkflowmodel]]
          '[schema.core :as s])
 
+(def AnInputSchema
+  {:number s/Num})
+
+(defworkflowinput an-input
+  {:witan/name :an-input
+   :witan/version "1.0"
+   :witan/doc "doc"
+   :witan/input-schema AnInputSchema})
+```
+
+### defworkflowoutput
+
+Use this macro to define the schema for a models outputs.
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowmodel]]
+         '[schema.core :as s])
+
+(def AnOutputSchema
+  {:number s/Num})
+
+(defworkflowoutput an-output
+  {:witan/name :an-output
+   :witan/version "1.0"
+   :witan/doc "doc"
+   :witan/output-schema AnOutputSchema})
+```
+
+## Helper Functions
+
+### defworkflowinput
+
+Use this macro to define the schema for a required input into a model.
+
+```clojure
+(require '[witan.workspace-api :refer [defworkflowmodel]]
+         '[schema.core :as s])
+
 (def AnInputSchema 
   {:number s/Num})
 
@@ -145,8 +185,7 @@ Use this macro to simulate a loop which executes at least once. First arg is a p
          {:number 1}
          (inc-loop) ;; returns {:number (inc number)}
          (double-loop) ;; returns {:number (* 2 number)}
-=> {:number 14}
-
+=> {:number 10}
 ```
 
 ## Notes on Model authoring
