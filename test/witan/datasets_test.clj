@@ -77,7 +77,7 @@
                                     (assoc :d (:a %))
                                     (dissoc :a))
                                test-data))
-        joined (wds/join [:b :c] (ds/dataset test-data) right)]
+        joined (wds/join (ds/dataset test-data) right [:b :c])]
     (is
      (= (wds/row-count joined)
         (wds/row-count right)

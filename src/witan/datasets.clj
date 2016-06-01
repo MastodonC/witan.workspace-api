@@ -111,7 +111,7 @@
   Implementation assumes the cost of converting the left dataset to rows and then using fold to join right, will be
   justified by the size of the data. Potential improve could be to detect the data size and if small perform the join by
   creating new columns for the dataset, rather than growing the rows."
-  [columns left right]
+  [left right columns]
   (let [right-indexer (column-values-fn right columns)
         unindexed-cols (remove (set columns) (ds/column-names right))
         inverse-indexer (column-values-fn right unindexed-cols)
