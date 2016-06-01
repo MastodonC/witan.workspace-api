@@ -64,5 +64,5 @@
 
 (deftest add-derived-column-test
   (is
-   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) map-column-data))
-    (wds/add-derived-column :d [:a :b] * (ds/dataset map-column-data)))))
+   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) add-derived-column-data))
+    (wds/add-derived-column :d [:a :b] * (ds/dataset add-derived-column-data)))))
