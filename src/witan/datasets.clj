@@ -75,10 +75,14 @@
          (ds/dataset (conj group-by col-name)))))
 
 (defn add-derived-column
+  "Adds or replaces a column in the dataset, with values (apply derive-fn (select-columns src-col-name (rows dataset))).
+   If derived-col-name already exists within the dataset, the column is replaced with the new values."
   [dataset derived-col-name src-col-names derive-fn]
-  (ds/add-column dataset derived-col-name
-                 (apply (partial map derive-fn)
-                        (map #(ds/column dataset %) src-col-names))))
+  (let [derived-col-name-present ((set (ds/column-names dataset)) derived-col-name)]
+    ((if derived-col-name-present ds/replace-column ds/add-column)
+     dataset derived-col-name
+     (apply (partial map derive-fn)
+            (map #(ds/column dataset %) src-col-names)))))
 
 (defn row-count
   "This should be added to core.matrix, and probably to the dataset protocol"
@@ -132,3 +136,26 @@
                            (get dex (left-indexer row)))))))
          (ds/dataset (concat (ds/column-names left) 
                              unindexed-cols)))))
+
+(defn filter-dataset
+  "Filters the given dataset to rows for which (filter-fn row) returns truthy.
+   Note: Be careful not to tie your filter-fn to a particular core.matrix implementation.
+   There is no cross implementation datatype or protocol for a row. Therefore to access a column
+   by it's key you should lookup in the index of the key (ds/column-index test-dataset :a-key) and
+   then use nth within your filter function.
+   DO NOT perform the index lookup within your filter-fn or you will get terrible performance!"
+  [dataset filter-fn]
+  (->> dataset
+       cm/rows
+       (r/fold
+        (fn combiner
+          ([] [])
+          ([l r]
+           (concat l r)))
+        (fn reducer
+          ([] [])
+          ([a row]
+           (if (filter-fn row)
+             (conj a row)
+             a))))
+       (ds/dataset (ds/column-names dataset))))
