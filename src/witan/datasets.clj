@@ -75,10 +75,14 @@
          (ds/dataset (conj group-by col-name)))))
 
 (defn add-derived-column
+  "Adds or replaces a column in the dataset, with values (apply derive-fn (select-columns src-col-name (rows dataset))).
+   If derived-col-name already exists within the dataset, the column is replaced with the new values."
   [dataset derived-col-name src-col-names derive-fn]
-  (ds/add-column dataset derived-col-name
-                 (apply (partial map derive-fn)
-                        (map #(ds/column dataset %) src-col-names))))
+  (let [derived-col-name-present ((set (ds/column-names dataset)) derived-col-name)]
+    ((if derived-col-name-present ds/replace-column ds/add-column)
+     dataset derived-col-name
+     (apply (partial map derive-fn)
+            (map #(ds/column dataset %) src-col-names)))))
 
 (defn row-count
   "This should be added to core.matrix, and probably to the dataset protocol"

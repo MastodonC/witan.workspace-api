@@ -65,9 +65,14 @@
        (map #(vector % % %) (range data-size))))
 
 (deftest add-derived-column-test
-  (is
-   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) test-data))
-    (wds/add-derived-column (ds/dataset test-data) :d [:a :b] *))))
+  (testing "New column added"
+    (is
+     (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) test-data))
+        (wds/add-derived-column (ds/dataset test-data) :d [:a :b] *))))
+  (testing "Column replaced when derived-col-name alread exists"
+    (is
+     (= (ds/dataset (map #(update % :a (fn [_] (* (:a %) (:b %)))) test-data))
+        (wds/add-derived-column (ds/dataset test-data) :a [:a :b] *)))))
 
 (deftest build-index-test
   (is
