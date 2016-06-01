@@ -6,5 +6,5 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [net.mikera/core.matrix "0.51.0"]
                  [prismatic/schema "1.1.0"]]
-  :repositories [["releases" {:url "https://clojars.org/repo/"}]
-                 ["snapshots" {:url "https://clojars.org/repo/"}]])
+  :repositories [["releases" {:url "https://clojars.org/repo"}]
+                 ["snapshots" {:url "https://clojars.org/repo"}]])
