@@ -195,7 +195,7 @@
     (is (= (greater-than-10 {:number 12}) true))
     (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) true))))
 
-(def AnInputSchema 
+(def AnInputSchema
   {:number s/Num})
 
 (defworkflowinput an-input
@@ -213,7 +213,7 @@
            (:witan/workflowinput
             (meta #'an-input))))))
 
-(def AnOutputSchema 
+(def AnOutputSchema
   {:number s/Num})
 
 (defworkflowoutput an-output

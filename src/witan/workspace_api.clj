@@ -123,7 +123,7 @@
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)
-        _ (s/validate WorkflowModel body)]
+        _ (s/validate WorkflowModel (first body))]
     `(do
        (def ~name
          ~doc
