@@ -2,6 +2,8 @@
 
 A helper library for writing models in the style of Witan workspaces.
 
+## Defining Functions, Predicates and Models
+
 ## API
 
 ### defworkflowfn
@@ -78,6 +80,8 @@ Use this macro to define a workflow for a model. All model workflows defined thi
    :task4 :out)
 ```
 
+## Helper Functions
+
 ### defworkflowinput
 
 Use this macro to define the schema for a required input into a model.
@@ -145,7 +149,7 @@ Use this macro to simulate a loop which executes at least once. First arg is a p
          {:number 1}
          (inc-loop) ;; returns {:number (inc number)}
          (double-loop) ;; returns {:number (* 2 number)}
-=> {:number 14}
+=> {:number 10}
 
 ```
 
