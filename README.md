@@ -88,7 +88,7 @@ Use this macro to define the schema for a required input into a model.
 (require '[witan.workspace-api :refer [defworkflowmodel]]
          '[schema.core :as s])
 
-(def AnInputSchema 
+(def AnInputSchema
   {:number s/Num})
 
 (defworkflowinput an-input
@@ -96,7 +96,7 @@ Use this macro to define the schema for a required input into a model.
    :witan/version "1.0"
    :witan/doc "doc"
    :witan/input-schema AnInputSchema})
-``` 
+```
 
 ### defworkflowoutput
 
@@ -106,7 +106,7 @@ Use this macro to define the schema for a models outputs.
 (require '[witan.workspace-api :refer [defworkflowmodel]]
          '[schema.core :as s])
 
-(def AnOutputSchema 
+(def AnOutputSchema
   {:number s/Num})
 
 (defworkflowoutput an-output
@@ -114,7 +114,7 @@ Use this macro to define the schema for a models outputs.
    :witan/version "1.0"
    :witan/doc "doc"
    :witan/output-schema AnOutputSchema})
-``` 
+```
 
 ## Helper Functions
 
