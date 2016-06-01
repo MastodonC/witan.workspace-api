@@ -98,7 +98,7 @@
                result#  (actual-fn# inputs'# params'#)
                result'# (select-schema-keys ~output-schema result#)]
            (merge inputs# result'#)))
-     ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
+       ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
