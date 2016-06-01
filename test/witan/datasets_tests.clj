@@ -56,3 +56,13 @@
       (get-in results [aggregate groupby])
       (wds/rollup aggregate :value groupby data))
      (str "Checking " aggregate " grouped by " groupby))))
+
+(def add-derived-column-data
+  (map zipmap
+       (repeat [:a :b :c]) 
+       (map #(vector % % %) (range 5))))
+
+(deftest add-derived-column-test
+  (is
+   (= (ds/dataset (map #(assoc % :d (* (:a %) (:b %))) add-derived-column-data))
+    (wds/add-derived-column :d [:a :b] * (ds/dataset add-derived-column-data)))))

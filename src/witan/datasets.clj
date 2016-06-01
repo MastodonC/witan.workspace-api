@@ -73,3 +73,9 @@
                   (conj g (finalizer v))))
          (into [])
          (ds/dataset (conj group-by col-name)))))
+
+(defn add-derived-column
+  [derived-col-name src-col-names derive-fn dataset]
+  (ds/add-column dataset derived-col-name
+                 (apply (partial map derive-fn)
+                        (map #(ds/column dataset %) src-col-names))))
