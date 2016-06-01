@@ -57,10 +57,12 @@
       (wds/rollup data aggregate :value groupby))
      (str "Checking " aggregate " grouped by " groupby))))
 
+(def data-size 10000)
+
 (def test-data
   (map zipmap
        (repeat [:a :b :c]) 
-       (map #(vector % % %) (range 100000))))
+       (map #(vector % % %) (range data-size))))
 
 (deftest add-derived-column-test
   (is
@@ -87,3 +89,16 @@
     (is
      (= '(:a :b :c :d)
         (ds/column-names joined)))))
+
+(deftest filter-dataset-test
+  (let [a-index (ds/column-index (ds/dataset test-data) :a)
+        filter-dataset-fn #(<= (/ data-size 2) (nth % a-index))
+        filter-maps-fn #(<= (/ data-size 2) (:a %))
+        filtered (wds/filter-dataset (ds/dataset test-data) filter-dataset-fn)]
+    (is
+     (= (/ data-size 2)
+        (wds/row-count filtered)))
+    (is
+     (= (ds/dataset
+         (filter filter-maps-fn test-data))
+        filtered))))

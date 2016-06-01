@@ -132,3 +132,26 @@
                            (get dex (left-indexer row)))))))
          (ds/dataset (concat (ds/column-names left) 
                              unindexed-cols)))))
+
+(defn filter-dataset
+  "Filters the given dataset to rows for which (filter-fn row) returns truthy.
+   Note: Be careful not to tie your filter-fn to a particular core.matrix implementation.
+   There is no cross implementation datatype or protocol for a row. Therefore to access a column
+   by it's key you should lookup in the index of the key (ds/column-index test-dataset :a-key) and
+   then use nth within your filter function.
+   DO NOT perform the index lookup within your filter-fn or you will get terrible performance!"
+  [dataset filter-fn]
+  (->> dataset
+       cm/rows
+       (r/fold
+        (fn combiner
+          ([] [])
+          ([l r]
+           (concat l r)))
+        (fn reducer
+          ([] [])
+          ([a row]
+           (if (filter-fn row)
+             (conj a row)
+             a))))
+       (ds/dataset (ds/column-names dataset))))
