@@ -151,9 +151,9 @@
         (apply hash-map options)))
 
 (defn join
-  "Performs a left-join"
+  "Performs a right-join"
   [left right columns & options]
-  (apply (partial left-join left right columns) options))
+  (apply (partial right-join left right columns) options))
 
 (defn filter-dataset
   "Filters the given dataset to rows for which (filter-fn row) returns truthy.

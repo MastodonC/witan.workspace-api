@@ -121,13 +121,13 @@
           (wds/left-join ds4 ds1 [:a]))))
     (testing "joins"
       (is
-       (= (d [:a :b :c] [[1 2 5] [2 4 1] [3 2 3]])
+       (= (d [:a :c :b] [[1 5 2] [2 1 4] [3 3 2]])
           (wds/join ds1 ds2 [:a])))
       (is
-       (= (d [:a :b :e] [[1 2 8] [2 4 0] [3 2 nil]])
+       (= (d [:a :e :b] [[1 8 2] [2 0 4] [4 1 nil]])
           (wds/join ds1 ds3 [:a])))
       (is
-       (= (d [:a :x :y :b] [[1 8 9 2]])
+       (= (d [:a :b :x :y] [[1 2 8 9] [2 4 nil nil] [3 2 nil nil]])
           (wds/join ds4 ds1 [:a])))))
   (testing "Large join"
     (let [right (ds/dataset (map #(-> %
