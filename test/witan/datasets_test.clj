@@ -91,34 +91,34 @@
         ds2 (d [:a :c] [[1 5] [2 1] [3 3]])
         ds3 (d [:a :e] [[1 8] [2 0] [4 1]])
         ds4 (d [:a :x :y] [[1 8 9]])]
-    (testing "left joins"
+    (testing "right joins"
       (is
        (= (d [:a :c :b] [[1 5 2] [2 1 4] [3 3 2]])
-          (wds/left-join ds1 ds2 [:a])))
+          (wds/right-join ds1 ds2 [:a])))
       (is
        (= (d [:a :e :b] [[1 8 2] [2 0 4] [4 1 nil]])
-          (wds/left-join ds1 ds3 [:a])))
+          (wds/right-join ds1 ds3 [:a])))
       (is
        (= (d [:a :b :x :y] [[1 2 8 9] [2 4 nil nil] [3 2 nil nil]])
-          (wds/left-join ds4 ds1 [:a]))))
+          (wds/right-join ds4 ds1 [:a]))))
     (testing "empty cell provision"
       (is
        (= (d [:a :b :x :y] [[1 2 8 9] [2 4 :foo :foo] [3 2 :foo :foo]])
-          (wds/left-join ds4 ds1 [:a] :empty-cell :foo))))
+          (wds/right-join ds4 ds1 [:a] :empty-cell :foo))))
     (testing "unnatural join"
       (is
        (= (ds/dataset [:a :b :a] [[1 2 2] [2 4 nil] [3 2 3]])
-          (wds/left-join ds2 ds1 [[:a] [:c]]))))
-    (testing "right joins"
+          (wds/right-join ds2 ds1 [[:a] [:c]]))))
+    (testing "left joins"
       (is
        (= (d [:a :b :c] [[1 2 5] [2 4 1] [3 2 3]])
-          (wds/right-join ds1 ds2 [:a])))
+          (wds/left-join ds1 ds2 [:a])))
       (is
        (= (d [:a :b :e] [[1 2 8] [2 4 0] [3 2 nil]])
-          (wds/right-join ds1 ds3 [:a])))
+          (wds/left-join ds1 ds3 [:a])))
       (is
        (= (d [:a :x :y :b] [[1 8 9 2]])
-          (wds/right-join ds4 ds1 [:a]))))
+          (wds/left-join ds4 ds1 [:a]))))
     (testing "joins"
       (is
        (= (d [:a :b :c] [[1 2 5] [2 4 1] [3 2 3]])
@@ -130,20 +130,20 @@
        (= (d [:a :x :y :b] [[1 8 9 2]])
           (wds/join ds4 ds1 [:a])))))
   (testing "Large join"
-      (let [right (ds/dataset (map #(-> %
-                                        (assoc :d (:a %))
-                                        (dissoc :a))
-                                   test-data))
-            joined (wds/right-join (ds/dataset test-data) right [:b :c])]
-        (is
-         (= (wds/row-count joined)
-            (wds/row-count right)
-            (count test-data)))
-        (is
-         (every? #(= (:d %) (:a %)) (ds/row-maps joined)))
-        (is
-         (= '(:a :b :c :d)
-            (ds/column-names joined))))))
+    (let [right (ds/dataset (map #(-> %
+                                      (assoc :d (:a %))
+                                      (dissoc :a))
+                                 test-data))
+          joined (wds/left-join (ds/dataset test-data) right [:b :c])]
+      (is
+       (= (wds/row-count joined)
+          (wds/row-count right)
+          (count test-data)))
+      (is
+       (every? #(= (:d %) (:a %)) (ds/row-maps joined)))
+      (is
+       (= '(:a :b :c :d)
+          (ds/column-names joined))))))
 
 (deftest filter-dataset-test
   (let [a-index (ds/column-index (ds/dataset test-data) :a)

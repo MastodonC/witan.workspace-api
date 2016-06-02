@@ -140,20 +140,20 @@
 
 (defn left-join
   [left right columns & options]
-  (join- right left 
+  (join- left right 
         (if (vector? (first columns)) columns (repeat 2 columns))
         (apply hash-map options)))
 
 (defn right-join
   [left right columns & options]
-  (join- left right 
+  (join- right left 
         (if (vector? (first columns)) columns (repeat 2 columns))
         (apply hash-map options)))
 
 (defn join
-  "Performs a right-join"
+  "Performs a left-join"
   [left right columns & options]
-  (apply (partial right-join left right columns) options))
+  (apply (partial left-join left right columns) options))
 
 (defn filter-dataset
   "Filters the given dataset to rows for which (filter-fn row) returns truthy.
