@@ -111,7 +111,7 @@
       (map (partial nth row) col-indexes))))
 
 (defn join-
-  "Left joins the two datasets by the values found in columns, where the left side of the join is left. 
+  "Right joins the two datasets by the values found in columns, where the left side of the join is target. 
   Implementation assumes the cost of converting the left dataset to rows and then using fold to join right, will be
   justified by the size of the data. Potential improve could be to detect the data size and if small perform the join by
   creating new columns for the dataset, rather than growing the rows."
