@@ -146,10 +146,13 @@
           (ds/column-names joined))))))
 
 (deftest filter-dataset-test
-  (let [a-index (ds/column-index (ds/dataset test-data) :a)
-        filter-dataset-fn #(<= (/ data-size 2) (nth % a-index))
-        filter-maps-fn #(<= (/ data-size 2) (:a %))
-        filtered (wds/filter-dataset (ds/dataset test-data) filter-dataset-fn)]
+  (let [filter-dataset-fn (fn [a] 
+                            (<= (/ data-size 2)
+                                a))
+        filter-maps-fn (fn [m] 
+                         (<= (/ data-size 2) 
+                             (:a m)))
+        filtered (wds/filter-dataset (ds/dataset test-data) [:a] filter-dataset-fn)]
     (is
      (= (/ data-size 2)
         (wds/row-count filtered)))
