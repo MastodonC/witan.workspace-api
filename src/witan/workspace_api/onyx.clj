@@ -11,6 +11,10 @@
       (throw (ex-info (str "Could not resolve symbol on the classpath, did you require the file that contains the symbol " kw "?") {:kw kw})))))
 
 (defn default-wrapper
+  "This function exists to act as a 'wrapper' for when workflow functions are to
+   be used in an Onyx job, the original reason being that workflow functions expect
+   [state params] whereas Onyx functions expect [params state]. Unfortunately we
+   have to do an additional ns-resolve."
   ([fn segment]
    ((kw->fn fn) segment))
   ([fn params segment]
