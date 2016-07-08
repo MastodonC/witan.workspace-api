@@ -1,6 +1,10 @@
 (ns witan.workspace-api
   (:require [schema.core :as s]))
 
+(def _logging?_ (atom false))
+
+(defn set-logging! [b] (reset! _logging?_ b))
+
 (def wildcard-keyword
   :*)
 
@@ -93,6 +97,8 @@
        (defn ~name
          ~doc
          [inputs# & params#]
+         (when @_logging?_
+           (println "witan.workspace-api - calling fn:" ~name))
          (let [params'# (select-params# (first params#))
                inputs'# (select-schema-keys ~input-schema inputs#)
                result#  (actual-fn# inputs'# params'#)
@@ -113,6 +119,8 @@
        (defn ~name
          ~doc
          [inputs# & params#]
+         (when @_logging?_
+           (println "witan.workspace-api - calling pred:" ~name))
          (let [params'# (select-params# (first params#))
                inputs'# (select-schema-keys ~input-schema inputs#)
                result#  (actual-fn# inputs'# params'#)]
