@@ -98,12 +98,18 @@
          ~doc
          [inputs# & params#]
          (when @_logging?_
-           (println "witan.workspace-api - calling fn:" ~name))
-         (let [params'# (select-params# (first params#))
-               inputs'# (select-schema-keys ~input-schema inputs#)
-               result#  (actual-fn# inputs'# params'#)
-               result'# (select-schema-keys ~output-schema result#)]
-           (merge inputs# result'#)))
+           (println "witan.workspace-api -> calling fn:" (:witan/name ~metadata)))
+         (try
+           (let [params'# (select-params# (first params#))
+                 inputs'# (select-schema-keys ~input-schema inputs#)
+                 result#  (actual-fn# inputs'# params'#)
+                 _#       (when @_logging?_
+                            (println "witan.workspace-api <- finished fn:" (:witan/name ~metadata)))
+                 result'# (select-schema-keys ~output-schema result#)]
+             (merge inputs# result'#))
+           (catch Exception e# (when @_logging?_
+                                 (println "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
+                  (throw e#))))
        ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
 
 (defmacro defworkflowpred
@@ -120,11 +126,17 @@
          ~doc
          [inputs# & params#]
          (when @_logging?_
-           (println "witan.workspace-api - calling pred:" ~name))
-         (let [params'# (select-params# (first params#))
-               inputs'# (select-schema-keys ~input-schema inputs#)
-               result#  (actual-fn# inputs'# params'#)]
-           (boolean result#)))
+           (println "witan.workspace-api -> calling pred:" (:witan/name ~metadata)))
+         (try
+           (let [params'# (select-params# (first params#))
+                 inputs'# (select-schema-keys ~input-schema inputs#)
+                 result#  (actual-fn# inputs'# params'#)
+                 _#       (when @_logging?_
+                            (println "witan.workspace-api <- finished pred:" (:witan/name ~metadata)))]
+             (boolean result#))
+           (catch Exception e# (when @_logging?_
+                                 (println "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
+                  (throw e#))))
        ~(assign-meta name :witan/workflowpred WorkflowPredicateMetaData metadata))))
 
 (defmacro defworkflowmodel
