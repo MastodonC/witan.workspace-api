@@ -20,20 +20,20 @@
 
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/input-schema  {s/Keyword s/Any}
-   :witan/output-schema {s/Keyword s/Any}
-   :witan/doc           s/Str
+  {(s/required-key :witan/name)          s/Keyword
+   (s/required-key :witan/version)       s/Str
+   (s/required-key :witan/input-schema)  {s/Keyword s/Any}
+   (s/required-key :witan/output-schema) {s/Keyword s/Any}
+   (s/required-key :witan/doc)           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
 (def WorkflowPredicateMetaData
   "Schema for the Witan workflow predicate metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/input-schema  {s/Keyword s/Any}
-   :witan/doc           s/Str
+  {(s/required-key :witan/name)          s/Keyword
+   (s/required-key :witan/version)       s/Str
+   (s/required-key :witan/input-schema)  {s/Keyword s/Any}
+   (s/required-key :witan/doc)           s/Str
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
