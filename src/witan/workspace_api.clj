@@ -110,7 +110,7 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
+       (assign-meta name :witan/workflowfn WorkflowFnMetaData ~metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
@@ -137,7 +137,7 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       ~(assign-meta name :witan/workflowpred WorkflowPredicateMetaData metadata))))
+       (assign-meta name :witan/workflowpred WorkflowPredicateMetaData ~metadata))))
 
 (defmacro defworkflowmodel
   "Macro for defining a workflow model"
@@ -159,8 +159,8 @@
        (def ~name
          ~doc)
        ~(assign-meta name
-                    kw
-                    schema metadata))))
+                     kw
+                     schema metadata))))
 
 (defmacro defworkflowinput
   "Macro for defining a workflow input"
