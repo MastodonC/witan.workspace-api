@@ -79,9 +79,7 @@
 
 (defn assign-meta
   [name kw schema metadata]
-  `(alter-meta! #'~name assoc
-                ~kw
-                (s/validate ~schema ~metadata)))
+  (alter-meta! name assoc kw (s/validate schema metadata)))
 
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
@@ -110,7 +108,7 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       ~(assign-meta name :witan/workflowfn WorkflowFnMetaData metadata))))
+       (assign-meta #'~name :witan/workflowfn WorkflowFnMetaData ~metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
@@ -137,7 +135,7 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       ~(assign-meta name :witan/workflowpred WorkflowPredicateMetaData metadata))))
+       (assign-meta #'~name :witan/workflowpred WorkflowPredicateMetaData ~metadata))))
 
 (defmacro defworkflowmodel
   "Macro for defining a workflow model"
@@ -148,9 +146,9 @@
        (def ~name
          ~doc
          ~@body)
-       ~(assign-meta name
-                     :witan/workflowmodel
-                     WorkflowModelMetaData metadata))))
+       (assign-meta #'~name
+                    :witan/workflowmodel
+                    WorkflowModelMetaData ~metadata))))
 
 (defn workflowput
   [kw schema name body]
@@ -158,9 +156,9 @@
     `(do
        (def ~name
          ~doc)
-       ~(assign-meta name
-                    kw
-                    schema metadata))))
+       (assign-meta #'~name
+                    ~kw
+                    ~schema ~metadata))))
 
 (defmacro defworkflowinput
   "Macro for defining a workflow input"
