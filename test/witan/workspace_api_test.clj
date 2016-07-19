@@ -141,6 +141,7 @@
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}
+              :witan/impl :witan.workspace-api-test/inc*
               :witan/doc "inc* has a doc-string"})))))
 
 (deftest select-schema-keys-test
@@ -182,6 +183,7 @@
             :witan/input-schema {:number s/Num}
             :witan/param-schema {:value s/Num}
             :witan/doc "pred doc"
+            :witan/impl :witan.workspace-api-test/less-than
             :witan/predicate? true}
            (:witan/workflowpred
             (meta #'less-than)))))
@@ -210,6 +212,7 @@
     (is (= {:witan/name :an-input
             :witan/version "1.0"
             :witan/doc "doc"
+            :witan/impl :witan.workspace-api-test/an-input
             :witan/input-schema AnInputSchema}
            (:witan/workflowinput
             (meta #'an-input))))))
@@ -228,6 +231,7 @@
     (is (= {:witan/name :an-output
             :witan/version "1.0"
             :witan/doc "doc"
+            :witan/impl :witan.workspace-api-test/an-output
             :witan/output-schema AnOutputSchema}
            (:witan/workflowoutput
             (meta #'an-output))))))

@@ -17,40 +17,38 @@
         result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
     (s/validate schema' result)))
 
+(def ContractBase
+  {:witan/name          s/Keyword
+   :witan/impl          s/Keyword
+   :witan/version       s/Str
+   :witan/doc           s/Str
+   (s/optional-key :witan/exported?) s/Bool})
 
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/input-schema  {s/Keyword s/Any}
-   :witan/output-schema {s/Keyword s/Any}
-   :witan/doc           s/Str
-   (s/optional-key :witan/param-schema) {s/Any s/Any}
-   (s/optional-key :witan/exported?) s/Bool})
+  (merge ContractBase
+         {:witan/input-schema  {s/Keyword s/Any}
+          :witan/output-schema {s/Keyword s/Any}
+          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowPredicateMetaData
   "Schema for the Witan workflow predicate metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/input-schema  {s/Keyword s/Any}
-   :witan/doc           s/Str
-   :witan/predicate?    (s/pred true?)
-   (s/optional-key :witan/param-schema) {s/Any s/Any}
-   (s/optional-key :witan/exported?) s/Bool})
+  (merge ContractBase
+         {:witan/input-schema  {s/Keyword s/Any}
+          :witan/predicate?    (s/pred true?)
+          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowInputMetaData
   "Schema for the Witan workflow input metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/input-schema  {s/Keyword s/Any}
-   :witan/doc           s/Str})
+  (merge ContractBase
+         {:witan/input-schema  {s/Keyword s/Any}
+          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowOutputMetaData
   "Schema for the Witan workflow output metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/output-schema  {s/Keyword s/Any}
-   :witan/doc           s/Str})
+  (merge ContractBase
+         {:witan/output-schema  {s/Keyword s/Any}
+          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowModelMetaData
   "Schema for the Witan workflow model metadata"
@@ -59,11 +57,12 @@
    :witan/doc           s/Str})
 
 (def WorkflowStatement
-  [(s/one s/Keyword "ingress") (s/one (s/if keyword?
-                                        s/Keyword
-                                        [(s/one s/Keyword "predicate")
-                                         (s/one s/Keyword "predicate-true")
-                                         (s/one s/Keyword "predicate-false")]) "egress")])
+  [(s/one s/Keyword "ingress")
+   (s/one (s/if keyword?
+            s/Keyword
+            [(s/one s/Keyword "predicate")
+             (s/one s/Keyword "predicate-true")
+             (s/one s/Keyword "predicate-false")]) "egress")])
 
 (def WorkflowModel
   "Schema for the Witan workflow model metadata"
@@ -82,10 +81,15 @@
   [name kw schema metadata]
   (alter-meta! name assoc kw (s/validate schema metadata)))
 
+(defn create-impl-kw
+  [name]
+  (->> name (str *ns* "/") (keyword)))
+
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
   [name & body] ;; metadata args &body
   (let [[doc metadata [args & body]] (carve-body body)
+        metadata (assoc metadata :witan/impl (create-impl-kw name))
         {:keys [witan/input-schema
                 witan/output-schema
                 witan/param-schema]} metadata]
@@ -115,7 +119,9 @@
   "Macro for defining a workflow predicate"
   [name & body] ;; metadata args &body
   (let [[doc metadata [args & body]] (carve-body body)
-        metadata (assoc metadata :witan/predicate? true)
+        metadata (assoc metadata
+                        :witan/predicate? true
+                        :witan/impl (create-impl-kw name))
         {:keys [witan/input-schema
                 witan/param-schema]} metadata]
     `(let [select-params# ~(if param-schema
@@ -154,7 +160,8 @@
 
 (defn workflowput
   [kw schema name body]
-  (let [[doc metadata _] (carve-body body)]
+  (let [[doc metadata _] (carve-body body)
+        metadata (assoc metadata :witan/impl (create-impl-kw name))]
     `(do
        (def ~name
          ~doc)
