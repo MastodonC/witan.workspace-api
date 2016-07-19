@@ -181,7 +181,8 @@
             :witan/version "1.0"
             :witan/input-schema {:number s/Num}
             :witan/param-schema {:value s/Num}
-            :witan/doc "pred doc"}
+            :witan/doc "pred doc"
+            :witan/predicate? true}
            (:witan/workflowpred
             (meta #'less-than)))))
   (testing "Do predicates behave as expected?"
