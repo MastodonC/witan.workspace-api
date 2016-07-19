@@ -1,5 +1,6 @@
 (ns witan.workspace-api
-  (:require [schema.core :as s]))
+  (:require [schema.core :as s]
+            [clojure.set]))
 
 (def _logging?_ (atom false))
 
