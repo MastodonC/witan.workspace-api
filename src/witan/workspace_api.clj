@@ -34,6 +34,7 @@
    :witan/version       s/Str
    :witan/input-schema  {s/Keyword s/Any}
    :witan/doc           s/Str
+   :witan/predicate?    (s/pred true?)
    (s/optional-key :witan/param-schema) {s/Any s/Any}
    (s/optional-key :witan/exported?) s/Bool})
 
@@ -114,6 +115,7 @@
   "Macro for defining a workflow predicate"
   [name & body] ;; metadata args &body
   (let [[doc metadata [args & body]] (carve-body body)
+        metadata (assoc metadata :witan/predicate? true)
         {:keys [witan/input-schema
                 witan/param-schema]} metadata]
     `(let [select-params# ~(if param-schema
