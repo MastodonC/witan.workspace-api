@@ -54,13 +54,29 @@
   {:bar (+ foo baz)})
 
 ;; model
-(defworkflowmodel default-model
+(defmodel default-model
   "doc"
   {:witan/name :default
    :witan/version "1.0"}
-  [[:in :out]
-   [:shake [:pred :left :right]]
-   [:all :about]])
+  {:workflow [[:in :a]
+              [:b  :c]
+              [:c  :out]]
+   :catalog [{:witan/name :in
+              :witan/fn :test.fn/inc
+              :witan/version "1.0"
+              :witan/params {:foo "bar"}}
+             {:witan/name :a
+              :witan/fn :test.fn/inc
+              :witan/version "1.0"}
+             {:witan/name :b
+              :witan/fn :test.fn/inc
+              :witan/version "1.0"}
+             {:witan/name :c
+              :witan/fn :test.fn/inc
+              :witan/version "1.0"}
+             {:witan/name :out
+              :witan/fn :test.fn/inc
+              :witan/version "1.0"}]})
 
 ;; predicate
 (defworkflowpred less-than
@@ -164,16 +180,32 @@
     (is (= "inc* has a doc-string"
            (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
 
-(deftest workflowmodel
+(deftest model
   (testing "models work"
     (is (= {:witan/name :default
             :witan/version "1.0"
             :witan/doc "doc"}
-           (:witan/workflowmodel
+           (:witan/model
             (meta #'default-model))))
-    (is (= [[:in :out]
-            [:shake [:pred :left :right]]
-            [:all :about]]
+    (is (= {:workflow [[:in :a]
+                       [:b  :c]
+                       [:c  :out]]
+            :catalog [{:witan/name :in
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0"
+                       :witan/params {:foo "bar"}}
+                      {:witan/name :a
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0"}
+                      {:witan/name :b
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0"}
+                      {:witan/name :c
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0"}
+                      {:witan/name :out
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0"}]}
            default-model))))
 
 (deftest workflowpred-meta

@@ -51,12 +51,6 @@
          {:witan/output-schema  {s/Keyword s/Any}
           (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
-(def WorkflowModelMetaData
-  "Schema for the Witan workflow model metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/doc           s/Str})
-
 (def WorkflowStatement
   [(s/one s/Keyword "ingress")
    (s/one (s/if keyword?
@@ -65,9 +59,35 @@
              (s/one s/Keyword "predicate-true")
              (s/one s/Keyword "predicate-false")]) "egress")])
 
-(def WorkflowModel
+(def CatalogEntry
+  {:witan/name    s/Keyword
+   :witan/fn      s/Keyword
+   :witan/version s/Str
+   (s/optional-key :witan/params) {s/Keyword s/Any}})
+
+(def ModelMetaData
   "Schema for the Witan workflow model metadata"
-  [WorkflowStatement])
+  {:witan/name          s/Keyword
+   :witan/version       s/Str
+   :witan/doc           s/Str})
+
+(defn model-valid?
+  [{:keys [workflow catalog]}]
+  (try
+    (let [node-names    (-> workflow flatten set)
+          catalog-names (set (map :witan/name catalog))
+          groups        (group-by :witan/name catalog)]
+      (cond
+        (not-empty (clojure.set/difference node-names catalog-names))
+        (println "An error occurred: There are missing :witan/name entries in the catalog.")
+        (some (comp (partial < 1) count second) groups)
+        (println "An error occurred: There are duplicate :witan/name entries in the catalog.")
+        :else true))))
+
+(def Model
+  "Schema for the Witan workflow model metadata"
+  (s/constrained {:workflow [WorkflowStatement]
+                  :catalog  [CatalogEntry]} model-valid?))
 
 (defn carve-body
   [body]
@@ -146,18 +166,18 @@
                   (throw e#))))
        (assign-meta #'~name :witan/workflowpred WorkflowPredicateMetaData ~metadata))))
 
-(defmacro defworkflowmodel
+(defmacro defmodel
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)
-        _ (s/validate WorkflowModel (first body))]
+        _ (s/validate Model (first body))]
     `(do
        (def ~name
          ~doc
          ~@body)
        (assign-meta #'~name
-                    :witan/workflowmodel
-                    WorkflowModelMetaData ~metadata))))
+                    :witan/model
+                    ModelMetaData ~metadata))))
 
 (defn workflowput
   [kw schema name body]
