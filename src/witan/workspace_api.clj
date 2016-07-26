@@ -79,11 +79,9 @@
           groups        (group-by :witan/name catalog)]
       (cond
         (not-empty (clojure.set/difference node-names catalog-names))
-        (do (println "An error occurred: There are missing :witan/name entries in the catalog.")
-            false)
+        (println "An error occurred: There are missing :witan/name entries in the catalog.")
         (some (comp (partial < 1) count second) groups)
-        (do (println "An error occurred: There are duplicate :witan/name entries in the catalog.")
-            false)
+        (println "An error occurred: There are duplicate :witan/name entries in the catalog.")
         :else true))))
 
 (def Model
