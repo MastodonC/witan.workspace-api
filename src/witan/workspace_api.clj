@@ -18,10 +18,17 @@
         result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
     (s/validate schema' result)))
 
+(def FnTypeEnum
+  (s/enum :function
+          :predicate
+          :input
+          :output))
+
 (def ContractBase
   {:witan/name          s/Keyword
    :witan/impl          s/Keyword
    :witan/version       s/Str
+   :witan/type          FnTypeEnum
    :witan/doc           s/Str
    (s/optional-key :witan/exported?) s/Bool})
 
@@ -36,19 +43,18 @@
   "Schema for the Witan workflow predicate metadata"
   (merge ContractBase
          {:witan/input-schema  {s/Keyword s/Any}
-          :witan/predicate?    (s/pred true?)
           (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowInputMetaData
   "Schema for the Witan workflow input metadata"
   (merge ContractBase
-         {:witan/input-schema  {s/Keyword s/Any}
+         {:witan/output-schema  {s/Keyword s/Any}
           (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowOutputMetaData
   "Schema for the Witan workflow output metadata"
   (merge ContractBase
-         {:witan/output-schema  {s/Keyword s/Any}
+         {:witan/input-schema  {s/Keyword s/Any}
           (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
 (def WorkflowStatement
@@ -63,13 +69,15 @@
   {:witan/name    s/Keyword
    :witan/fn      s/Keyword
    :witan/version s/Str
+   :witan/type    FnTypeEnum
    (s/optional-key :witan/params) {s/Keyword s/Any}})
 
 (def ModelMetaData
   "Schema for the Witan workflow model metadata"
   {:witan/name          s/Keyword
    :witan/version       s/Str
-   :witan/doc           s/Str})
+   :witan/doc           s/Str
+   :witan/type          (s/eq :model)})
 
 (defn model-valid?
   [{:keys [workflow catalog]}]
@@ -79,7 +87,8 @@
           groups        (group-by :witan/name catalog)]
       (cond
         (not-empty (clojure.set/difference node-names catalog-names))
-        (println "An error occurred: There are missing :witan/name entries in the catalog.")
+        (println "An error occurred: There are missing :witan/name entries in the catalog."
+                 (clojure.set/difference node-names catalog-names))
         (some (comp (partial < 1) count second) groups)
         (println "An error occurred: There are duplicate :witan/name entries in the catalog.")
         :else true))))
@@ -108,9 +117,11 @@
 
 (defmacro defworkflowfn
   "Macro for defining a workflow function"
-  [name & body] ;; metadata args &body
+  [name & body]
   (let [[doc metadata [args & body]] (carve-body body)
-        metadata (assoc metadata :witan/impl (create-impl-kw name))
+        metadata (assoc metadata
+                        :witan/impl (create-impl-kw name)
+                        :witan/type :function)
         {:keys [witan/input-schema
                 witan/output-schema
                 witan/param-schema]} metadata]
@@ -134,14 +145,14 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       (assign-meta #'~name :witan/workflowfn WorkflowFnMetaData ~metadata))))
+       (assign-meta #'~name :witan/metadata WorkflowFnMetaData ~metadata))))
 
 (defmacro defworkflowpred
   "Macro for defining a workflow predicate"
-  [name & body] ;; metadata args &body
+  [name & body]
   (let [[doc metadata [args & body]] (carve-body body)
         metadata (assoc metadata
-                        :witan/predicate? true
+                        :witan/type :predicate
                         :witan/impl (create-impl-kw name))
         {:keys [witan/input-schema
                 witan/param-schema]} metadata]
@@ -164,41 +175,81 @@
            (catch Exception e# (when @_logging?_
                                  (println "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
-       (assign-meta #'~name :witan/workflowpred WorkflowPredicateMetaData ~metadata))))
+       (assign-meta #'~name :witan/metadata WorkflowPredicateMetaData ~metadata))))
+
+(defmacro defworkflowinput
+  "Macro for defining a workflow input"
+  [name & body] ;; metadata args &body
+  (let [[doc metadata [args & body]] (carve-body body)
+        metadata (assoc metadata
+                        :witan/impl (create-impl-kw name)
+                        :witan/type :input)
+        {:keys [witan/output-schema
+                witan/param-schema]} metadata]
+    `(let [select-params# ~(if param-schema
+                             `(partial select-schema-keys ~param-schema)
+                             `(constantly nil))
+           actual-fn# (fn ~args ~@body)]
+       (defn ~name
+         ~doc
+         [inputs# & params#] ;; input field will always be nil, we leave it there for uniformity
+         (when @_logging?_
+           (println "witan.workspace-api -> calling input:" (:witan/name ~metadata)))
+         (try
+           (let [params'# (select-params# (first params#))
+                 result#  (actual-fn# nil params'#)
+                 _#       (when @_logging?_
+                            (println "witan.workspace-api <- finished input:" (:witan/name ~metadata)))
+                 result'# (select-schema-keys ~output-schema result#)]
+             result'#)
+           (catch Exception e# (when @_logging?_
+                                 (println "witan.workspace-api !! Exception in input" (:witan/name ~metadata) "-" e#))
+                  (throw e#))))
+       (assign-meta #'~name :witan/metadata WorkflowInputMetaData ~metadata))))
+
+(defmacro defworkflowoutput
+  "Macro for defining a workflow output"
+  [name & body]
+  (let [[doc metadata [args & body]] (carve-body body)
+        metadata (assoc metadata
+                        :witan/impl (create-impl-kw name)
+                        :witan/type :output)
+        {:keys [witan/input-schema
+                witan/param-schema]} metadata]
+    `(let [select-params# ~(if param-schema
+                             `(partial select-schema-keys ~param-schema)
+                             `(constantly nil))
+           actual-fn# (fn ~args ~@body)]
+       (defn ~name
+         ~doc
+         [inputs# & params#]
+         (when @_logging?_
+           (println "witan.workspace-api -> calling output:" (:witan/name ~metadata)))
+         (try
+           (let [params'# (select-params# (first params#))
+                 inputs'# (select-schema-keys ~input-schema inputs#)
+                 result#  (actual-fn# inputs'# params'#)
+                 _#       (when @_logging?_
+                            (println "witan.workspace-api <- finished output:" (:witan/name ~metadata)))]
+             result#)
+           (catch Exception e# (when @_logging?_
+                                 (println "witan.workspace-api !! Exception in output" (:witan/name ~metadata) "-" e#))
+                  (throw e#))))
+       (assign-meta #'~name :witan/metadata WorkflowOutputMetaData ~metadata))))
 
 (defmacro defmodel
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)
+        metadata (assoc metadata :witan/type :model)
         _ (s/validate Model (first body))]
     `(do
        (def ~name
          ~doc
          ~@body)
        (assign-meta #'~name
-                    :witan/model
+                    :witan/metadata
                     ModelMetaData ~metadata))))
-
-(defn workflowput
-  [kw schema name body]
-  (let [[doc metadata _] (carve-body body)
-        metadata (assoc metadata :witan/impl (create-impl-kw name))]
-    `(do
-       (def ~name
-         ~doc)
-       (assign-meta #'~name
-                    ~kw
-                    ~schema ~metadata))))
-
-(defmacro defworkflowinput
-  "Macro for defining a workflow input"
-  [name & body] ;; metadata args &body
-  (workflowput :witan/workflowinput WorkflowInputMetaData name body))
-
-(defmacro defworkflowoutput
-  "Macro for defining a workflow output"
-  [name & body] ;; metadata args &body
-  (workflowput :witan/workflowoutput WorkflowOutputMetaData name body))
 
 (defmacro merge->
   [data & forms]

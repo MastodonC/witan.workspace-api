@@ -63,18 +63,23 @@
               [:c  :out]]
    :catalog [{:witan/name :in
               :witan/fn :test.fn/inc
+              :witan/type :input
               :witan/version "1.0"
               :witan/params {:foo "bar"}}
              {:witan/name :a
+              :witan/type :function
               :witan/fn :test.fn/inc
               :witan/version "1.0"}
              {:witan/name :b
+              :witan/type :function
               :witan/fn :test.fn/inc
               :witan/version "1.0"}
              {:witan/name :c
+              :witan/type :function
               :witan/fn :test.fn/inc
               :witan/version "1.0"}
              {:witan/name :out
+              :witan/type :output
               :witan/fn :test.fn/inc
               :witan/version "1.0"}]})
 
@@ -150,20 +155,21 @@
   (testing "Does the correct metadata get applied?"
     (let [m (meta #'inc*)]
       (is m)
-      (is (contains? m :witan/workflowfn))
-      (is (= (:witan/workflowfn m)
+      (is (contains? m :witan/metadata))
+      (is (= (:witan/metadata m)
              {:witan/name          :witan.test-fns.inc
               :witan/version       "1.0"
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}
+              :witan/type :function
               :witan/impl :witan.workspace-api-test/inc*
               :witan/doc "inc* has a doc-string"})))))
 
 (deftest select-schema-keys-test
   (testing "Does the select-schema-keys macro work as intended?"
-    (is (= (select-schema-keys {:foo s/Num} {:foo 123 :bar "xyz"})
-           {:foo 123})))
+    (is (= {:foo 123}
+           (select-schema-keys {:foo s/Num} {:foo 123 :bar "xyz"}))))
   (testing "Are non-maps rejected?"
     (is (thrown-with-msg?
          Exception
@@ -173,37 +179,47 @@
     (is (thrown-with-msg?
          Exception
          #"Value does not match schema: \{:foo \(not \(instance\? java.lang.String 123\)\)\}"
-         (select-schema-keys {:foo s/Str} {:foo 123})))))
+         (select-schema-keys {:foo s/Str} {:foo 123}))))
+  (testing "Does wildcard work?"
+    (let [data {:foo 123 :bar "134"}]
+      (is (= data
+             (select-schema-keys {:* s/Num :bar s/Str} data))))))
 
 (deftest doc-string-test
   (testing "Is the doc-string of a function persisted in the :witan/doc meta key?"
     (is (= "inc* has a doc-string"
-           (-> (meta #'inc*) :witan/workflowfn :witan/doc)))))
+           (-> (meta #'inc*) :witan/metadata :witan/doc)))))
 
 (deftest model
   (testing "models work"
     (is (= {:witan/name :default
             :witan/version "1.0"
+            :witan/type :model
             :witan/doc "doc"}
-           (:witan/model
+           (:witan/metadata
             (meta #'default-model))))
     (is (= {:workflow [[:in :a]
                        [:b  :c]
                        [:c  :out]]
             :catalog [{:witan/name :in
                        :witan/fn :test.fn/inc
+                       :witan/type :input
                        :witan/version "1.0"
                        :witan/params {:foo "bar"}}
                       {:witan/name :a
+                       :witan/type :function
                        :witan/fn :test.fn/inc
                        :witan/version "1.0"}
                       {:witan/name :b
+                       :witan/type :function
                        :witan/fn :test.fn/inc
                        :witan/version "1.0"}
                       {:witan/name :c
+                       :witan/type :function
                        :witan/fn :test.fn/inc
                        :witan/version "1.0"}
                       {:witan/name :out
+                       :witan/type :output
                        :witan/fn :test.fn/inc
                        :witan/version "1.0"}]}
            default-model))))
@@ -216,8 +232,8 @@
             :witan/param-schema {:value s/Num}
             :witan/doc "pred doc"
             :witan/impl :witan.workspace-api-test/less-than
-            :witan/predicate? true}
-           (:witan/workflowpred
+            :witan/type :predicate}
+           (:witan/metadata
             (meta #'less-than)))))
   (testing "Do predicates behave as expected?"
     (is (= (less-than {:number 2} {:value 3}) true))
@@ -230,40 +246,47 @@
     (is (= (greater-than-10 {:number 12}) true))
     (is (= (greater-than-10 {:number 12} {:does-nothing "foo-bar"}) true))))
 
-(def AnInputSchema
-  {:number s/Num})
-
 (defworkflowinput an-input
   {:witan/name :an-input
    :witan/version "1.0"
    :witan/doc "doc"
-   :witan/input-schema AnInputSchema})
+   :witan/param-schema {:param s/Num}
+   :witan/output-schema {:number s/Num}}
+  [_ {:keys [param]}]
+  {:number param})
 
 (deftest workflowinput
-  (testing "input work"
+  (testing "input meta works"
     (is (= {:witan/name :an-input
             :witan/version "1.0"
             :witan/doc "doc"
             :witan/impl :witan.workspace-api-test/an-input
-            :witan/input-schema AnInputSchema}
-           (:witan/workflowinput
-            (meta #'an-input))))))
-
-(def AnOutputSchema
-  {:number s/Num})
+            :witan/param-schema {:param s/Num}
+            :witan/output-schema {:number s/Num}
+            :witan/type :input}
+           (:witan/metadata
+            (meta #'an-input)))))
+  (testing "inputs can propagate data"
+    (let [result (an-input {:foo "bar"} {:param 1})]
+      (is (= {:number 1} result)))))
 
 (defworkflowoutput an-output
   {:witan/name :an-output
    :witan/version "1.0"
    :witan/doc "doc"
-   :witan/output-schema AnOutputSchema})
+   :witan/input-schema {:foo s/Str}}
+  [_ _])
 
 (deftest workflowoutput
-  (testing "output work"
+  (testing "output meta works"
     (is (= {:witan/name :an-output
             :witan/version "1.0"
             :witan/doc "doc"
             :witan/impl :witan.workspace-api-test/an-output
-            :witan/output-schema AnOutputSchema}
-           (:witan/workflowoutput
-            (meta #'an-output))))))
+            :witan/input-schema {:foo s/Str}
+            :witan/type :output}
+           (:witan/metadata
+            (meta #'an-output)))))
+  (testing "outputs can propagate data"
+    (let [result (an-output {:foo "bar" :bar "baz" :baz "quaz"} nil)]
+      (is (= nil result)))))
