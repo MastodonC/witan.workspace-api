@@ -290,3 +290,19 @@
   (testing "outputs can propagate data"
     (let [result (an-output {:foo "bar" :bar "baz" :baz "quaz"} nil)]
       (is (= nil result)))))
+
+(deftest logging-test
+  (testing "log can be switched on"
+    (let [result (with-out-str
+                   (set-api-logging! println)
+                   (inc* {:input 1} {}))]
+      (is (= (clojure.string/replace
+              "witan.workspace-api -> calling fn::witan.test-fns.inc
+               witan.workspace-api <- finished fn::witan.test-fns.inc\n" #"\n +" "\n")
+             result))))
+  (testing "log can be switched off"
+    (let [result (with-out-str
+                   (set-api-logging! identity)
+                   (inc* {:input 1} {}))]
+      (is (= ""
+           result)))))

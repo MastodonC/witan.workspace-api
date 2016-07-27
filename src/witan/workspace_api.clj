@@ -2,9 +2,11 @@
   (:require [schema.core :as s]
             [clojure.set]))
 
-(def _logging?_ (atom false))
+(def _logging-pred_ (atom identity))
 
-(defn set-logging! [b] (reset! _logging?_ b))
+(defn set-api-logging! [log] (if (fn? log)
+                               (reset! _logging-pred_ log)
+                               (throw (Exception. "Must be a function"))))
 
 (def wildcard-keyword
   :*)
@@ -132,18 +134,15 @@
        (defn ~name
          ~doc
          [inputs# & params#]
-         (when @_logging?_
-           (println "witan.workspace-api -> calling fn:" (:witan/name ~metadata)))
+         (@_logging-pred_ (str "witan.workspace-api -> calling fn:" (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
                  inputs'# (select-schema-keys ~input-schema inputs#)
                  result#  (actual-fn# inputs'# params'#)
-                 _#       (when @_logging?_
-                            (println "witan.workspace-api <- finished fn:" (:witan/name ~metadata)))
+                 _#       (@_logging-pred_ (str "witan.workspace-api <- finished fn:" (:witan/name ~metadata)))
                  result'# (select-schema-keys ~output-schema result#)]
              (merge inputs# result'#))
-           (catch Exception e# (when @_logging?_
-                                 (println "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
+           (catch Exception e# (@_logging-pred_ (str "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowFnMetaData ~metadata))))
 
@@ -163,17 +162,14 @@
        (defn ~name
          ~doc
          [inputs# & params#]
-         (when @_logging?_
-           (println "witan.workspace-api -> calling pred:" (:witan/name ~metadata)))
+         (@_logging-pred_ (str "witan.workspace-api -> calling pred:" (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
                  inputs'# (select-schema-keys ~input-schema inputs#)
                  result#  (actual-fn# inputs'# params'#)
-                 _#       (when @_logging?_
-                            (println "witan.workspace-api <- finished pred:" (:witan/name ~metadata)))]
+                 _#       (@_logging-pred_ (str "witan.workspace-api <- finished pred:" (:witan/name ~metadata)))]
              (boolean result#))
-           (catch Exception e# (when @_logging?_
-                                 (println "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
+           (catch Exception e# (@_logging-pred_ (str "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowPredicateMetaData ~metadata))))
 
@@ -193,17 +189,14 @@
        (defn ~name
          ~doc
          [inputs# & params#] ;; input field will always be nil, we leave it there for uniformity
-         (when @_logging?_
-           (println "witan.workspace-api -> calling input:" (:witan/name ~metadata)))
+         (@_logging-pred_ (str "witan.workspace-api -> calling input:" (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
                  result#  (actual-fn# nil params'#)
-                 _#       (when @_logging?_
-                            (println "witan.workspace-api <- finished input:" (:witan/name ~metadata)))
+                 _#       (@_logging-pred_ (str "witan.workspace-api <- finished input:" (:witan/name ~metadata)))
                  result'# (select-schema-keys ~output-schema result#)]
              result'#)
-           (catch Exception e# (when @_logging?_
-                                 (println "witan.workspace-api !! Exception in input" (:witan/name ~metadata) "-" e#))
+           (catch Exception e# (@_logging-pred_ (str "witan.workspace-api !! Exception in input" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowInputMetaData ~metadata))))
 
@@ -223,17 +216,14 @@
        (defn ~name
          ~doc
          [inputs# & params#]
-         (when @_logging?_
-           (println "witan.workspace-api -> calling output:" (:witan/name ~metadata)))
+         (@_logging-pred_ (str "witan.workspace-api -> calling output:" (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
                  inputs'# (select-schema-keys ~input-schema inputs#)
                  result#  (actual-fn# inputs'# params'#)
-                 _#       (when @_logging?_
-                            (println "witan.workspace-api <- finished output:" (:witan/name ~metadata)))]
+                 _#       (@_logging-pred_ (str "witan.workspace-api <- finished output:" (:witan/name ~metadata)))]
              result#)
-           (catch Exception e# (when @_logging?_
-                                 (println "witan.workspace-api !! Exception in output" (:witan/name ~metadata) "-" e#))
+           (catch Exception e# (@_logging-pred_ (str "witan.workspace-api !! Exception in output" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowOutputMetaData ~metadata))))
 
