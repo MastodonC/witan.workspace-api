@@ -11,8 +11,9 @@
                                  (reset! _count_ 0)
                                  (reset! _logging-pred_
                                          (fn [msg]
-                                           (swap! _count_ inc)
-                                           (send _logger_ (fn [_] (log (str @_count_ " " msg)))))))
+                                           (send _logger_
+                                                 (fn [_]
+                                                   (log (str (swap! _count_ inc) " " msg)))))))
                                (throw (Exception. "Must be a function"))))
 
 (def wildcard-keyword
