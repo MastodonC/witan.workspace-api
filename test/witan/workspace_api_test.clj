@@ -295,14 +295,15 @@
   (testing "log can be switched on"
     (let [result (with-out-str
                    (set-api-logging! println)
-                   (inc* {:input 1} {}))]
+                   (inc* {:input 1} {})
+                   (Thread/sleep 100))] ;; logging is async so need it to flush
       (is (= (clojure.string/replace
-              "witan.workspace-api -> calling fn::witan.test-fns.inc
-               witan.workspace-api <- finished fn::witan.test-fns.inc\n" #"\n +" "\n")
+              "1 witan.workspace-api -> calling fn::witan.test-fns.inc
+               2 witan.workspace-api <- finished fn::witan.test-fns.inc\n" #"\n +" "\n")
              result))))
   (testing "log can be switched off"
     (let [result (with-out-str
                    (set-api-logging! identity)
                    (inc* {:input 1} {}))]
       (is (= ""
-           result)))))
+             result)))))

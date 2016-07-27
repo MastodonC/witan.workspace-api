@@ -2,10 +2,17 @@
   (:require [schema.core :as s]
             [clojure.set]))
 
+(def _count_ (atom 0))
+(def _logger_ (agent nil))
 (def _logging-pred_ (atom identity))
 
 (defn set-api-logging! [log] (if (fn? log)
-                               (reset! _logging-pred_ log)
+                               (do
+                                 (reset! _count_ 0)
+                                 (reset! _logging-pred_
+                                         (fn [msg]
+                                           (swap! _count_ inc)
+                                           (send _logger_ (fn [_] (log (str @_count_ " " msg)))))))
                                (throw (Exception. "Must be a function"))))
 
 (def wildcard-keyword
