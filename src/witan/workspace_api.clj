@@ -4,7 +4,7 @@
 
 (def ^:private counter (atom 0))
 (def ^:private logger (agent nil))
-(def ^:private logging-fn (atom identity))
+(def  logging-fn (atom identity))
 
 (defn set-api-logging! [log] (if (fn? log)
                                (do
