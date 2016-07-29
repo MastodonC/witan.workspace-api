@@ -1,5 +1,6 @@
 (ns witan.workspace-api
   (:require [schema.core :as s]
+            [witan.workspace-api.schema :refer :all]
             [clojure.set]))
 
 (def ^:private counter (atom 0))
@@ -27,86 +28,6 @@
         schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
         result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
     (s/validate schema' result)))
-
-(def FnTypeEnum
-  (s/enum :function
-          :predicate
-          :input
-          :output))
-
-(def ContractBase
-  {:witan/name          s/Keyword
-   :witan/impl          s/Keyword
-   :witan/version       s/Str
-   :witan/type          FnTypeEnum
-   :witan/doc           s/Str
-   (s/optional-key :witan/exported?) s/Bool})
-
-(def WorkflowFnMetaData
-  "Schema for the Witan workflow function metadata"
-  (merge ContractBase
-         {:witan/input-schema  {s/Keyword s/Any}
-          :witan/output-schema {s/Keyword s/Any}
-          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
-
-(def WorkflowPredicateMetaData
-  "Schema for the Witan workflow predicate metadata"
-  (merge ContractBase
-         {:witan/input-schema  {s/Keyword s/Any}
-          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
-
-(def WorkflowInputMetaData
-  "Schema for the Witan workflow input metadata"
-  (merge ContractBase
-         {:witan/output-schema  {s/Keyword s/Any}
-          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
-
-(def WorkflowOutputMetaData
-  "Schema for the Witan workflow output metadata"
-  (merge ContractBase
-         {:witan/input-schema  {s/Keyword s/Any}
-          (s/optional-key :witan/param-schema) {s/Any s/Any}}))
-
-(def WorkflowStatement
-  [(s/one s/Keyword "ingress")
-   (s/one (s/if keyword?
-            s/Keyword
-            [(s/one s/Keyword "predicate")
-             (s/one s/Keyword "predicate-true")
-             (s/one s/Keyword "predicate-false")]) "egress")])
-
-(def CatalogEntry
-  {:witan/name    s/Keyword
-   :witan/fn      s/Keyword
-   :witan/version s/Str
-   :witan/type    FnTypeEnum
-   (s/optional-key :witan/params) {s/Keyword s/Any}})
-
-(def ModelMetaData
-  "Schema for the Witan workflow model metadata"
-  {:witan/name          s/Keyword
-   :witan/version       s/Str
-   :witan/doc           s/Str
-   :witan/type          (s/eq :model)})
-
-(defn model-valid?
-  [{:keys [workflow catalog]}]
-  (try
-    (let [node-names    (-> workflow flatten set)
-          catalog-names (set (map :witan/name catalog))
-          groups        (group-by :witan/name catalog)]
-      (cond
-        (not-empty (clojure.set/difference node-names catalog-names))
-        (println "An error occurred: There are missing :witan/name entries in the catalog."
-                 (clojure.set/difference node-names catalog-names))
-        (some (comp (partial < 1) count second) groups)
-        (println "An error occurred: There are duplicate :witan/name entries in the catalog.")
-        :else true))))
-
-(def Model
-  "Schema for the Witan workflow model metadata"
-  (s/constrained {:workflow [WorkflowStatement]
-                  :catalog  [CatalogEntry]} model-valid?))
 
 (defn carve-body
   [body]

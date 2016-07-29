@@ -8,7 +8,7 @@
 (defworkflowfn inc*
   "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
-   :witan/version       "1.0"
+   :witan/version       "1.0.0"
    :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberA s/Num}}
@@ -17,7 +17,7 @@
 
 (defworkflowfn inc-loop
   {:witan/name          :witan.test-fns.inc2
-   :witan/version       "1.0"
+   :witan/version       "1.0.0"
    :witan/exported?     true
    :witan/input-schema  {:number s/Num}
    :witan/output-schema {:number s/Num}}
@@ -26,7 +26,7 @@
 
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
-   :witan/version       "1.0"
+   :witan/version       "1.0.0"
    :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberB s/Num}}
@@ -35,7 +35,7 @@
 
 (defworkflowfn mulX
   {:witan/name          :witan.test-fns.mulX
-   :witan/version       "1.0"
+   :witan/version       "1.0.0"
    :witan/exported?     true
    :witan/input-schema  {:numberC s/Num}
    :witan/output-schema {:number s/Num}
@@ -45,7 +45,7 @@
 
 (defworkflowfn broken
   {:witan/name          :witan.test-fns.broken
-   :witan/version       "1.0"
+   :witan/version       "1.0.0"
    :witan/exported?     true
    :witan/input-schema  {:foo s/Num}
    :witan/output-schema {:number s/Num}
@@ -57,37 +57,37 @@
 (defmodel default-model
   "doc"
   {:witan/name :default
-   :witan/version "1.0"}
+   :witan/version "1.0.0"}
   {:workflow [[:in :a]
               [:b  :c]
               [:c  :out]]
    :catalog [{:witan/name :in
               :witan/fn :test.fn/inc
               :witan/type :input
-              :witan/version "1.0"
+              :witan/version "1.0.0"
               :witan/params {:foo "bar"}}
              {:witan/name :a
               :witan/type :function
               :witan/fn :test.fn/inc
-              :witan/version "1.0"}
+              :witan/version "1.0.0"}
              {:witan/name :b
               :witan/type :function
               :witan/fn :test.fn/inc
-              :witan/version "1.0"}
+              :witan/version "1.0.0"}
              {:witan/name :c
               :witan/type :function
               :witan/fn :test.fn/inc
-              :witan/version "1.0"}
+              :witan/version "1.0.0"}
              {:witan/name :out
               :witan/type :output
               :witan/fn :test.fn/inc
-              :witan/version "1.0"}]})
+              :witan/version "1.0.0"}]})
 
 ;; predicate
 (defworkflowpred less-than
   "pred doc"
   {:witan/name :witan.test-preds.less-than
-   :witan/version "1.0"
+   :witan/version "1.0.0"
    :witan/input-schema {:number s/Num}
    :witan/param-schema {:value s/Num}}
   [{:keys [number]} {:keys [value]}]
@@ -96,7 +96,7 @@
 (defworkflowpred greater-than-10
   "pred doc"
   {:witan/name :witan.test-preds.greater-than-10
-   :witan/version "1.0"
+   :witan/version "1.0.0"
    :witan/input-schema {:number s/Num}}
   [{:keys [number]} _]
   (> number 10))
@@ -158,7 +158,7 @@
       (is (contains? m :witan/metadata))
       (is (= (:witan/metadata m)
              {:witan/name          :witan.test-fns.inc
-              :witan/version       "1.0"
+              :witan/version       "1.0.0"
               :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}
@@ -193,7 +193,7 @@
 (deftest model
   (testing "models work"
     (is (= {:witan/name :default
-            :witan/version "1.0"
+            :witan/version "1.0.0"
             :witan/type :model
             :witan/doc "doc"}
            (:witan/metadata
@@ -204,30 +204,30 @@
             :catalog [{:witan/name :in
                        :witan/fn :test.fn/inc
                        :witan/type :input
-                       :witan/version "1.0"
+                       :witan/version "1.0.0"
                        :witan/params {:foo "bar"}}
                       {:witan/name :a
                        :witan/type :function
                        :witan/fn :test.fn/inc
-                       :witan/version "1.0"}
+                       :witan/version "1.0.0"}
                       {:witan/name :b
                        :witan/type :function
                        :witan/fn :test.fn/inc
-                       :witan/version "1.0"}
+                       :witan/version "1.0.0"}
                       {:witan/name :c
                        :witan/type :function
                        :witan/fn :test.fn/inc
-                       :witan/version "1.0"}
+                       :witan/version "1.0.0"}
                       {:witan/name :out
                        :witan/type :output
                        :witan/fn :test.fn/inc
-                       :witan/version "1.0"}]}
+                       :witan/version "1.0.0"}]}
            default-model))))
 
 (deftest workflowpred-meta
   (testing "Is predicate metadata applied?"
     (is (= {:witan/name :witan.test-preds.less-than
-            :witan/version "1.0"
+            :witan/version "1.0.0"
             :witan/input-schema {:number s/Num}
             :witan/param-schema {:value s/Num}
             :witan/doc "pred doc"
@@ -248,7 +248,7 @@
 
 (defworkflowinput an-input
   {:witan/name :an-input
-   :witan/version "1.0"
+   :witan/version "1.0.0"
    :witan/doc "doc"
    :witan/param-schema {:param s/Num}
    :witan/output-schema {:number s/Num}}
@@ -258,7 +258,7 @@
 (deftest workflowinput
   (testing "input meta works"
     (is (= {:witan/name :an-input
-            :witan/version "1.0"
+            :witan/version "1.0.0"
             :witan/doc "doc"
             :witan/impl :witan.workspace-api-test/an-input
             :witan/param-schema {:param s/Num}
@@ -272,7 +272,7 @@
 
 (defworkflowoutput an-output
   {:witan/name :an-output
-   :witan/version "1.0"
+   :witan/version "1.0.0"
    :witan/doc "doc"
    :witan/input-schema {:foo s/Str}}
   [_ _])
@@ -280,7 +280,7 @@
 (deftest workflowoutput
   (testing "output meta works"
     (is (= {:witan/name :an-output
-            :witan/version "1.0"
+            :witan/version "1.0.0"
             :witan/doc "doc"
             :witan/impl :witan.workspace-api-test/an-output
             :witan/input-schema {:foo s/Str}
