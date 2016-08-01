@@ -71,7 +71,7 @@
                  _#       (@logging-fn (str "witan.workspace-api <- finished fn:" (:witan/name ~metadata)))
                  result'# (select-schema-keys ~output-schema result#)]
              (merge inputs# result'#))
-           (catch Exception e# (@logging-fn (str "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
+           (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowFnMetaData ~metadata))))
 
@@ -98,7 +98,7 @@
                  result#  (actual-fn# inputs'# params'#)
                  _#       (@logging-fn (str "witan.workspace-api <- finished pred:" (:witan/name ~metadata)))]
              (boolean result#))
-           (catch Exception e# (@logging-fn (str "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
+           (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in pred" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowPredicateMetaData ~metadata))))
 
@@ -125,7 +125,7 @@
                  _#       (@logging-fn (str "witan.workspace-api <- finished input:" (:witan/name ~metadata)))
                  result'# (select-schema-keys ~output-schema result#)]
              result'#)
-           (catch Exception e# (@logging-fn (str "witan.workspace-api !! Exception in input" (:witan/name ~metadata) "-" e#))
+           (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in input" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowInputMetaData ~metadata))))
 
@@ -152,7 +152,7 @@
                  result#  (actual-fn# inputs'# params'#)
                  _#       (@logging-fn (str "witan.workspace-api <- finished output:" (:witan/name ~metadata)))]
              result#)
-           (catch Exception e# (@logging-fn (str "witan.workspace-api !! Exception in output" (:witan/name ~metadata) "-" e#))
+           (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in output" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowOutputMetaData ~metadata))))
 

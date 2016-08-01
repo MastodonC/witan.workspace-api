@@ -1,5 +1,6 @@
 (ns witan.workspace-api.schema
-  (:require [schema.core :as s]))
+  (:require [clojure.set]
+            [schema.core :as s]))
 
 (defn semver?
   [x]
