@@ -5,7 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [net.mikera/core.matrix "0.51.0"]
-                 [prismatic/schema "1.1.2"]]
+                 [prismatic/schema "1.1.2"]
+                 [kixi/incanter-core "1.9.1-p0-3bf644a"]]
   :repositories [["releases" {:url "https://clojars.org/repo"
                               :creds :gpg}]
                  ["snapshots" {:url "https://clojars.org/repo"
