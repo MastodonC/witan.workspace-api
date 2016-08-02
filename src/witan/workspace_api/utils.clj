@@ -1,8 +1,9 @@
 (ns witan.workspace-api.utils)
 
-(defn assert!
-  [p msg]
-  (when-not (p) (throw (Exception. msg))))
+(defn property-holds? [x p msg]
+  (if (p x)
+    x
+    (throw (Exception. msg))))
 
 (defmacro map-fn-meta
   [& ss]
