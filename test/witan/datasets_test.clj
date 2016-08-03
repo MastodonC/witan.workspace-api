@@ -1,7 +1,10 @@
 (ns witan.datasets-test
   (:require [witan.datasets :as wds]
             [clojure.core.matrix.dataset :as ds]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [incanter.core :as i]
+            [incanter.stats :as st]
+            [incanter.datasets :as data]))
 
 (def data
   (ds/dataset [:label :label2 :value]
@@ -165,16 +168,46 @@
                           {:a 4 :b 5 :c 6}
                           {:a 7 :b 8 :c 9}]))
 
+(def iris-ds (data/get-dataset :iris))
+
+(def iris (i/to-matrix iris-ds))
+
 (deftest select-from-ds-test
   (testing "The function works as the Incanter equivalent."
     (is (= (ds/dataset [{:a 7 :b 8 :c 9}])
            (wds/select-from-ds test-ds
-                               {:a {:gte 4} :b {:gt 5}})))))
+                               {:a {:gte 4} :b {:gt 5}})))
+    ;; Reproduce Incanter example in query-dataset fn docstring:
+    (let [cars (data/get-dataset :cars)]
+      (is (= (i/query-dataset cars {:speed 10.0})
+             (wds/select-from-ds cars {:speed 10.0})))
+      (is (= (i/query-dataset cars {:speed {:$in #{17.0 14.0 19.0}}})
+             (wds/select-from-ds cars {:speed {:$in #{17.0 14.0 19.0}}})))
+      (is (= (i/query-dataset cars {:speed {:$lt 20.0 :$gt 10.0}})
+             (wds/select-from-ds cars {:speed {:$lt 20.0 :$gt 10.0}})))
+      (is (= (i/query-dataset cars {:speed {:$fn #(> (i/log %) 3.0)}})
+             (wds/select-from-ds cars {:speed {:$fn #(> (i/log %) 3.0)}})))
+      (is (= (i/query-dataset cars (fn [row] (> (/ (:speed row) (:dist row)) 1/2)))
+             (wds/select-from-ds cars (fn [row] (> (/ (:speed row) (:dist row)) 1/2))))))))
 
 (deftest subset-ds-test
   (testing "The function works as the Incanter equivalent."
     (is (= 4
-           (wds/subset-ds test-ds :rows 1 :cols :a)))))
+           (wds/subset-ds test-ds :rows 1 :cols :a)))
+    ;; Reproduce Incanter example in the sel multimethod docstring:
+    (let [us-arrests (data/get-dataset :us-arrests)]
+      (is (= (i/sel iris 0 0) (wds/subset-ds iris 0 0)))
+      (is (= (i/sel iris :rows 0 :cols 0) (wds/subset-ds iris :rows 0 :cols 0)))
+      (is (= (i/sel iris :cols 0) (wds/subset-ds iris :cols 0)))
+      (is (= (i/sel iris :cols [0 2]) (wds/subset-ds iris :cols [0 2])))
+      (is (= (i/sel iris :rows (range 10) :cols (range 2))
+             (wds/subset-ds iris :rows (range 10) :cols (range 2))))
+      (is (= (i/sel iris :rows (range 10)) (wds/subset-ds iris :rows (range 10))))
+      (is (= (i/sel iris :except-rows (range 10)) (wds/subset-ds iris :except-rows (range 10))))
+      (is (= (i/sel iris :except-cols 1) (wds/subset-ds iris :except-cols 1)))
+      (is (= (i/sel us-arrests :cols :State) (wds/subset-ds us-arrests :cols :State)))
+      (is (= (i/sel us-arrests :cols [:State :Murder])
+             (wds/subset-ds us-arrests :cols [:State :Murder]))))))
 
 (deftest group-ds-test
   (testing "The function works as the Incanter equivalent."
@@ -184,7 +217,13 @@
             (ds/dataset [{:a 4 :b 5 :c 6}])
             {:a 7 :b 8}
             (ds/dataset [{:a 7 :b 8 :c 9}])}
-           (wds/group-ds test-ds [:a :b])))))
+           (wds/group-ds test-ds [:a :b])))
+    ;; Reproduce Incanter example in the $group-by function docstring:
+    (let [h-e-color (data/get-dataset :hair-eye-color)]
+      (is (= (i/$group-by :Species iris-ds)
+             (wds/group-ds iris-ds :Species)))
+      (is (= (i/$group-by [:hair :eye] h-e-color)
+             (wds/group-ds h-e-color [:hair :eye]))))))
 
 (defn- fp-equals? [x y ε] (< (Math/abs (- x y)) ε))
 
@@ -197,4 +236,18 @@
       (is (every? true?
                   (map #(fp-equals? %1 %2 0.00000000001)
                        '(-3.552713678800501E-15 0.4999999999999998)
-                       (:coefs (wds/linear-model test-y test-x :intercept 1))))))))
+                       (:coefs (wds/linear-model test-y test-x :intercept 1))))))
+    ;; Reproduce Incanter example in linear-model fn docstring:
+    (let [y (i/sel iris :cols 0)
+          x (i/sel iris :cols (range 1 5))
+          iris-lm-i (st/linear-model y x)
+          iris-lm (wds/linear-model y x)]
+      (is (= (keys iris-lm-i) (keys iris-lm)))
+      (is (= (:coefs iris-lm-i) (:coefs iris-lm)))
+      (is (= (:sse iris-lm-i) (:sse iris-lm)))
+      (is (= (st/quantile (:residuals iris-lm-i)) (st/quantile (:residuals iris-lm))))
+      (is (= (:r-square iris-lm-i) (:r-square iris-lm)))
+      (is (= (:adj-r-square iris-lm-i) (:adj-r-square iris-lm)))
+      (is (= (:f-stat iris-lm-i) (:f-stat iris-lm)))
+      (is (= (:f-prob iris-lm-i) (:f-prob iris-lm)))
+      (is (= (:df iris-lm-i) (:df iris-lm))))))

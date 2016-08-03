@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [net.mikera/core.matrix "0.52.2"]
                  [prismatic/schema "1.1.3"]
-                 [kixi/incanter-core "1.9.1-p0-3bf644a"]]
+                 [kixi/incanter-core "1.9.1-p0-3bf644a"]
+                 [kixi/incanter-io "1.9.1-p0-3bf644a"]]
   :repositories [["releases" {:url "https://clojars.org/repo"
                               :creds :gpg}]
                  ["snapshots" {:url "https://clojars.org/repo"

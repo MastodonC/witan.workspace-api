@@ -183,21 +183,30 @@
          ds/dataset)))
 
 (defn select-from-ds
-  "Takes in a dataset and a map of where clauses like `{:col1 {:gte 4} :col2 {:gt 5}}`
-  and return a result dataset from selecting the where clauses. It uses
-  :eq -> `=`
-  :gt -> `>` or :gte -> `>=`
-  :lt -> `<` or :lte -> `<=`
-  :in or :nin for element in r not in a set."
+  "Takes in a dataset and where clauses as a map
+   like `{:col1 {:gte 4} :col2 {:gt 5}}` or as a predicate function.
+   Returns a result dataset from selecting the where clauses. It uses
+   :eq -> `=`
+   :gt -> `>` or :gte -> `>=`
+   :lt -> `<` or :lte -> `<=`
+   :in or :nin for element in r not in a set."
   [from-dataset where-clauses]
-  (utils/property-holds? where-clauses map? (str where-clauses " is not a map." ))
   (i/query-dataset from-dataset where-clauses))
 
 (defn subset-ds
   "Takes in dataset and a series of options like `:rows 1 :cols :col1`.
    returns a subset of the dataset according the options specified and as
    a single element or as a collection of elements.
-   The rows are selected by indexes and the columns by name or indexes."
+   The rows are selected by indexes and the columns by name or indexes.
+   Here are the options available:
+   :rows (default true)
+      returns all rows by default, can pass a row index or sequence of row indices
+   :cols (default true)
+      returns all columns by default, can pass a column index or sequence of column indices
+   :except-rows (default nil) can pass a row index or sequence of row indices to exclude
+   :except-cols (default nil) can pass a column index or sequence of column indices to exclude
+   :filter-fn (default nil)
+      a function can be provided to filter the rows of the matrix"
   [initial-dataset & options]
   (apply i/sel initial-dataset options))
 
