@@ -182,6 +182,8 @@
          (zipmap (ds/column-names dataset))
          ds/dataset)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Wrappers for Incanter functions used in `witan.models.demography`:
 (defn select-from-ds
   "Takes in a dataset and where clauses as a map
    like `{:col1 {:gte 4} :col2 {:gt 5}}` or as a predicate function.

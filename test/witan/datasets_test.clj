@@ -177,7 +177,8 @@
     (is (= (ds/dataset [{:a 7 :b 8 :c 9}])
            (wds/select-from-ds test-ds
                                {:a {:gte 4} :b {:gt 5}})))
-    ;; Reproduce Incanter example in query-dataset fn docstring:
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Reproduce Incanter examples in query-dataset fn docstring:
     (let [cars (data/get-dataset :cars)]
       (is (= (i/query-dataset cars {:speed 10.0})
              (wds/select-from-ds cars {:speed 10.0})))
@@ -194,7 +195,8 @@
   (testing "The function works as the Incanter equivalent."
     (is (= 4
            (wds/subset-ds test-ds :rows 1 :cols :a)))
-    ;; Reproduce Incanter example in the sel multimethod docstring:
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Reproduce Incanter examples in the sel multimethod docstring:
     (let [us-arrests (data/get-dataset :us-arrests)]
       (is (= (i/sel iris 0 0) (wds/subset-ds iris 0 0)))
       (is (= (i/sel iris :rows 0 :cols 0) (wds/subset-ds iris :rows 0 :cols 0)))
@@ -218,7 +220,8 @@
             {:a 7 :b 8}
             (ds/dataset [{:a 7 :b 8 :c 9}])}
            (wds/group-ds test-ds [:a :b])))
-    ;; Reproduce Incanter example in the $group-by function docstring:
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Reproduce Incanter examples in the $group-by function docstring:
     (let [h-e-color (data/get-dataset :hair-eye-color)]
       (is (= (i/$group-by :Species iris-ds)
              (wds/group-ds iris-ds :Species)))
@@ -237,7 +240,8 @@
                   (map #(fp-equals? %1 %2 0.00000000001)
                        '(-3.552713678800501E-15 0.4999999999999998)
                        (:coefs (wds/linear-model test-y test-x :intercept 1))))))
-    ;; Reproduce Incanter example in linear-model fn docstring:
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Reproduce Incanter examples in linear-model fn docstring:
     (let [y (i/sel iris :cols 0)
           x (i/sel iris :cols (range 1 5))
           iris-lm-i (st/linear-model y x)
