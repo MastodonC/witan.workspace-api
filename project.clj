@@ -1,4 +1,4 @@
-(defproject witan.workspace-api "0.1.17"
+(defproject witan.workspace-api "0.1.18-SNAPSHOT"
   :description "A helper library for writing models in the style of Witan workspaces."
   :url "https://github.com/MastodonC/witan.workspace-api"
   :license {:name "Eclipse Public License"
