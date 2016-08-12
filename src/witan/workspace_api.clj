@@ -174,6 +174,26 @@
                     :witan/metadata
                     ModelMetaData ~metadata))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; refactored input
+
+(defmacro definput
+  [fname {:keys [witan/version
+                 witan/schema
+                 witan/key
+                 witan/name] :as args}]
+  `(defworkflowinput ~fname
+     "made-with-make-input-macro"
+     {:witan/name ~name
+      :witan/version ~version
+      :witan/output-schema {~key ~schema}
+      :witan/param-schema {:src s/Str
+                           :fn  (s/pred fn?)}}
+     [inputs# params#]
+     (let [fn#  (:fn params#)
+           src# (:src params#)]
+       {~key (fn# src# ~schema)})))
+
 (defmacro merge->
   [data & forms]
   `(apply merge ~@(map list (repeat '->) (repeat data) forms)))
