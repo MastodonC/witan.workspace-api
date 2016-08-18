@@ -70,10 +70,9 @@
            (let [params'# (select-params# (first params#))
                  inputs'# (select-schema-keys ~input-schema inputs#)
                  result#  (actual-fn# inputs'# params'#)
-                 result'# (select-schema-keys ~output-schema result#)
-                 merged#   (merge inputs# result'#)]
+                 result'# (select-schema-keys ~output-schema result#)]
              (@logging-fn (str "witan.workspace-api <- finished fn: " (:witan/name ~metadata)))
-             merged#)
+             result'#)
            (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
                   (throw e#))))
        (assign-meta #'~name :witan/metadata WorkflowFnMetaData ~metadata))))
@@ -182,12 +181,13 @@
                  witan/schema
                  witan/key
                  witan/name] :as args}]
+  (s/validate DefInputMeta args)
   `(defworkflowinput ~fname
      "made-with-make-input-macro"
      {:witan/name ~name
       :witan/version ~version
       :witan/output-schema {~key ~schema}
-      :witan/param-schema {:src s/Str
+      :witan/param-schema {:src s/Any
                            :fn  (s/pred fn?)}}
      [inputs# params#]
      (let [fn#  (:fn params#)

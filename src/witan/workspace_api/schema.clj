@@ -67,6 +67,12 @@
          {:witan/input-schema  {s/Keyword s/Any}
           (s/optional-key :witan/param-schema) {s/Any s/Any}}))
 
+(def DefInputMeta
+  {:witan/name s/Keyword
+   :witan/version Semver
+   :witan/key s/Keyword
+   :witan/schema s/Any})
+
 (def WorkflowStatement
   [(s/one s/Keyword "ingress")
    (s/one (s/if keyword?

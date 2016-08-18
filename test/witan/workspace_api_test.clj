@@ -101,6 +101,13 @@
   [{:keys [number]} _]
   (> number 10))
 
+;;
+(definput new-input
+  {:witan/name :witan.test-inputs/new-input
+   :witan/key :foobar
+   :witan/schema s/Num
+   :witan/version "1.0.0"})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest happy-thread-test
@@ -113,19 +120,19 @@
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
-         {:input 2 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+         {:number 12}))))
 
 (deftest merge-macro-test
   (testing "Does the merge-> macro operate as expected?"
     (is (= (merge-> {:input 2 :numberC 4}
                     inc*
                     (mulX {:multiple 3}))
-           {:input 2 :numberA 3 :numberC 4 :number 12})))
+           {:numberA 3 :number 12})))
   (testing "Does the merge-> macro allow inline fns and embedded macros?"
     (is (= (merge-> {:input 2 :numberC 4}
                     (-> inc*)
                     ((fn [x] (mulX x {:multiple 3}))))
-           {:input 2 :numberA 3 :numberC 4 :number 12}))))
+           {:numberA 3 :number 12}))))
 
 (deftest do-while-macro-test
   (testing "Does the do-while-> loop macro operate as expected?"
@@ -307,3 +314,7 @@
                    (inc* {:input 1} {}))]
       (is (= ""
              result)))))
+
+(deftest definput-test
+  (testing "definput can be called"
+    (is (= {:foobar 123} (new-input nil {:src 123 :fn (fn [sr sc] (identity sr))})))))
