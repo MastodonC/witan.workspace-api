@@ -164,12 +164,12 @@
   "Macro for defining a workflow model"
   [name & body] ;; metadata args &body
   (let [[doc metadata body] (carve-body body)
-        metadata (assoc metadata :witan/type :model)
-        _ (s/validate Model (first body))]
+        metadata (assoc metadata :witan/type :model)]
     `(do
        (def ~name
          ~doc
          ~@body)
+       (s/validate Model ~@body)
        (assign-meta #'~name
                     :witan/metadata
                     ModelMetaData ~metadata))))
