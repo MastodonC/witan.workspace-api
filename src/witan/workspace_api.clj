@@ -166,10 +166,10 @@
   (let [[doc metadata body] (carve-body body)
         metadata (assoc metadata :witan/type :model)]
     `(do
+       (s/validate Model ~@body)
        (def ~name
          ~doc
          ~@body)
-       (s/validate Model ~@body)
        (assign-meta #'~name
                     :witan/metadata
                     ModelMetaData ~metadata))))
