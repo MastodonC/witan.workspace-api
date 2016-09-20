@@ -83,6 +83,41 @@
               :witan/fn :test.fn/inc
               :witan/version "1.0.0"}]})
 
+(def model-workflow
+  [[:in :a]
+   [:b  :c]
+   [:c  :out]])
+
+(def model-catalog
+  [{:witan/name :in
+    :witan/fn :test.fn/inc
+    :witan/type :input
+    :witan/version "1.0.0"
+    :witan/params {:foo "bar"}}
+   {:witan/name :a
+    :witan/type :function
+    :witan/fn :test.fn/inc
+    :witan/version "1.0.0"}
+   {:witan/name :b
+    :witan/type :function
+    :witan/fn :test.fn/inc
+    :witan/version "1.0.0"}
+   {:witan/name :c
+    :witan/type :function
+    :witan/fn :test.fn/inc
+    :witan/version "1.0.0"}
+   {:witan/name :out
+    :witan/type :output
+    :witan/fn :test.fn/inc
+    :witan/version "1.0.0"}])
+
+(defmodel default-model-2
+  "doc"
+  {:witan/name :default
+   :witan/version "1.0.0"}
+  {:workflow model-workflow
+   :catalog model-catalog})
+
 ;; predicate
 (defworkflowpred less-than
   "pred doc"
@@ -222,7 +257,33 @@
                        :witan/type :output
                        :witan/fn :test.fn/inc
                        :witan/version "1.0.0"}]}
-           default-model))))
+           default-model)))
+  (testing "model workflow and catalog can be def-ed outside defmodel"
+    (is (= {:workflow [[:in :a]
+                       [:b  :c]
+                       [:c  :out]]
+            :catalog [{:witan/name :in
+                       :witan/fn :test.fn/inc
+                       :witan/type :input
+                       :witan/version "1.0.0"
+                       :witan/params {:foo "bar"}}
+                      {:witan/name :a
+                       :witan/type :function
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0.0"}
+                      {:witan/name :b
+                       :witan/type :function
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0.0"}
+                      {:witan/name :c
+                       :witan/type :function
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0.0"}
+                      {:witan/name :out
+                       :witan/type :output
+                       :witan/fn :test.fn/inc
+                       :witan/version "1.0.0"}]}
+           default-model-2))))
 
 (deftest workflowpred-meta
   (testing "Is predicate metadata applied?"
