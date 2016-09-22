@@ -9,7 +9,6 @@
   "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberA s/Num}}
   [{:keys [input]} _]
@@ -18,7 +17,6 @@
 (defworkflowfn inc-loop
   {:witan/name          :witan.test-fns.inc2
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:number s/Num}
    :witan/output-schema {:number s/Num}}
   [{:keys [number]} _]
@@ -27,7 +25,6 @@
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberB s/Num}}
   [{:keys [input]} _]
@@ -36,7 +33,6 @@
 (defworkflowfn mulX
   {:witan/name          :witan.test-fns.mulX
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:numberC s/Num}
    :witan/output-schema {:number s/Num}
    :witan/param-schema  {:multiple s/Num}}
@@ -46,7 +42,6 @@
 (defworkflowfn broken
   {:witan/name          :witan.test-fns.broken
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:foo s/Num}
    :witan/output-schema {:number s/Num}
    :witan/param-schema  {:baz s/Num}}
@@ -148,19 +143,19 @@
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
-         {:input 2 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+         {:number 12}))))
 
 (deftest merge-macro-test
   (testing "Does the merge-> macro operate as expected?"
     (is (= (merge-> {:input 2 :numberC 4}
                     inc*
                     (mulX {:multiple 3}))
-           {:input 2 :numberA 3 :numberC 4 :number 12})))
+           {:numberA 3 :number 12})))
   (testing "Does the merge-> macro allow inline fns and embedded macros?"
     (is (= (merge-> {:input 2 :numberC 4}
                     (-> inc*)
                     ((fn [x] (mulX x {:multiple 3}))))
-           {:input 2 :numberA 3 :numberC 4 :number 12}))))
+           {:numberA 3 :number 12}))))
 
 (deftest do-while-macro-test
   (testing "Does the do-while-> loop macro operate as expected?"
@@ -194,7 +189,6 @@
       (is (= (:witan/metadata m)
              {:witan/name          :witan.test-fns.inc
               :witan/version       "1.0.0"
-              :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}
               :witan/type :function

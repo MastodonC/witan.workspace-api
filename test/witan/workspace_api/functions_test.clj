@@ -4,5 +4,5 @@
 
 (deftest rename-keys-test
   (testing "happy path for rename-keys"
-    (is (= {:foo "bar" :baz "bar"}
+    (is (= {:foo "bar"}
            (rename-keys {:baz "bar"} {:baz :foo})))))
