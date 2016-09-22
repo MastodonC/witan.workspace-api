@@ -39,8 +39,7 @@
    :witan/impl          s/Keyword
    :witan/version       Semver
    :witan/type          FnTypeEnum
-   :witan/doc           s/Str
-   (s/optional-key :witan/exported?) s/Bool})
+   :witan/doc           s/Str})
 
 (def WorkflowFnMetaData
   "Schema for the Witan workflow function metadata"
