@@ -148,19 +148,19 @@
              (mul2)
              (rename-keys {:numberB :numberC})
              (mulX {:multiple 3}))
-         {:input 2 :number 12, :foo "bar", :numberA 2, :numberB 4, :numberC 4}))))
+         {:number 12}))))
 
 (deftest merge-macro-test
   (testing "Does the merge-> macro operate as expected?"
     (is (= (merge-> {:input 2 :numberC 4}
                     inc*
                     (mulX {:multiple 3}))
-           {:input 2 :numberA 3 :numberC 4 :number 12})))
+           {:numberA 3 :number 12})))
   (testing "Does the merge-> macro allow inline fns and embedded macros?"
     (is (= (merge-> {:input 2 :numberC 4}
                     (-> inc*)
                     ((fn [x] (mulX x {:multiple 3}))))
-           {:input 2 :numberA 3 :numberC 4 :number 12}))))
+           {:numberA 3 :number 12}))))
 
 (deftest do-while-macro-test
   (testing "Does the do-while-> loop macro operate as expected?"
