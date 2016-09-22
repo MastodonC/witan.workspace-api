@@ -20,8 +20,7 @@ Use this macro to define functions that represents 'nodes' in a workflow. It sho
    :witan/version       "1.0"
    :witan/input-schema  {:number s/Num}
    :witan/output-schema {:new-number s/Num}
-   :witan/param-schema  {:multiplier s/Num} ;; optional, defaults to nil
-   :witan/exported?     false}              ;; optional, defaults to false
+   :witan/param-schema  {:multiplier s/Num}} ;; optional, defaults to nil
   [inputs params]
   {:new-number (* (:number inputs) (:multiplier params))})
 

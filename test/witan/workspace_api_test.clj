@@ -9,7 +9,6 @@
   "inc* has a doc-string"
   {:witan/name          :witan.test-fns.inc
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberA s/Num}}
   [{:keys [input]} _]
@@ -18,7 +17,6 @@
 (defworkflowfn inc-loop
   {:witan/name          :witan.test-fns.inc2
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:number s/Num}
    :witan/output-schema {:number s/Num}}
   [{:keys [number]} _]
@@ -27,7 +25,6 @@
 (defworkflowfn mul2
   {:witan/name          :witan.test-fns.mul2
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:input s/Num}
    :witan/output-schema {:numberB s/Num}}
   [{:keys [input]} _]
@@ -36,7 +33,6 @@
 (defworkflowfn mulX
   {:witan/name          :witan.test-fns.mulX
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:numberC s/Num}
    :witan/output-schema {:number s/Num}
    :witan/param-schema  {:multiple s/Num}}
@@ -46,7 +42,6 @@
 (defworkflowfn broken
   {:witan/name          :witan.test-fns.broken
    :witan/version       "1.0.0"
-   :witan/exported?     true
    :witan/input-schema  {:foo s/Num}
    :witan/output-schema {:number s/Num}
    :witan/param-schema  {:baz s/Num}}
@@ -194,7 +189,6 @@
       (is (= (:witan/metadata m)
              {:witan/name          :witan.test-fns.inc
               :witan/version       "1.0.0"
-              :witan/exported?     true
               :witan/input-schema  {:input s/Num}
               :witan/output-schema {:numberA s/Num}
               :witan/type :function
