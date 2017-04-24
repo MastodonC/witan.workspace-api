@@ -31,14 +31,16 @@
 
 (defn select-schema-keys
   "Like select-keys but deduces keys from a schema and performs validation"
-  [schema m]
-  (when-not (map? schema) (throw (Exception. "Schema must be a map")))
-  (let [has-any? (fn [x] (some #(= % wildcard-keyword) x))
-        schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
-        result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
-    (if @intermediate-validation?
-      (s/validate schema' result)
-      result)))
+  ([schema force-check? m]
+   (when-not (map? schema) (throw (Exception. "Schema must be a map")))
+   (let [has-any? (fn [x] (some #(= % wildcard-keyword) x))
+         schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
+         result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
+     (if (or force-check? @intermediate-validation?)
+       (s/validate schema' result)
+       result)))
+  ([schema m]
+   (select-schema-keys schema true m)))
 
 (defn carve-body
   [body]
@@ -77,9 +79,9 @@
          (@logging-fn (str "witan.workspace-api -> calling fn: " (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
-                 inputs'# (select-schema-keys ~input-schema inputs#)
+                 inputs'# (select-schema-keys ~input-schema false inputs#)
                  result#  (actual-fn# inputs'# params'#)
-                 result'# (select-schema-keys ~output-schema result#)]
+                 result'# (select-schema-keys ~output-schema false result#)]
              (@logging-fn (str "witan.workspace-api <- finished fn: " (:witan/name ~metadata)))
              result'#)
            (catch Throwable e# (@logging-fn (str "witan.workspace-api !! Exception in fn" (:witan/name ~metadata) "-" e#))
@@ -105,7 +107,7 @@
          (@logging-fn (str "witan.workspace-api -> calling pred: " (:witan/name ~metadata)))
          (try
            (let [params'# (select-params# (first params#))
-                 inputs'# (select-schema-keys ~input-schema inputs#)
+                 inputs'# (select-schema-keys ~input-schema false inputs#)
                  result#  (actual-fn# inputs'# params'#)
                  result'# (boolean result#)]
              (@logging-fn (str "witan.workspace-api <- finished pred: " (:witan/name ~metadata)))
