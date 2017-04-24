@@ -5,7 +5,8 @@
 
 (def ^:private counter (atom 0))
 (def ^:private logger (agent nil))
-(def  logging-fn (atom identity))
+(def logging-fn (atom identity))
+(def intermediate-validation? (atom true))
 
 (defn set-api-logging!
   [log]
@@ -19,6 +20,12 @@
                         (log (str (swap! counter inc) " " msg)))))))
     (throw (Exception. "Must be a function"))))
 
+(defn set-intermediate-fn-validation!
+  "Toggle whether workflow :functions use schema validation. Theoretically, if a model is tested thoroughly enough then only the inputs of a system need to have schema validation."
+  [^Boolean b]
+  (reset! intermediate-validation? b))
+
+
 (def wildcard-keyword
   :*)
 
@@ -29,7 +36,9 @@
   (let [has-any? (fn [x] (some #(= % wildcard-keyword) x))
         schema' (clojure.set/rename-keys schema {wildcard-keyword s/Keyword})
         result (if-not (-> schema keys has-any?) (select-keys m (keys schema)) m)]
-    (s/validate schema' result)))
+    (if @intermediate-validation?
+      (s/validate schema' result)
+      result)))
 
 (defn carve-body
   [body]

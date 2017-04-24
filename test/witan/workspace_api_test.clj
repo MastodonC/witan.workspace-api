@@ -46,7 +46,7 @@
    :witan/output-schema {:number s/Num}
    :witan/param-schema  {:baz s/Num}}
   [{:keys [foo]} {:keys [baz]}]
-  {:bar (+ foo baz)})
+  {:bar (+ (or foo 1) baz)})
 
 ;; model
 (defmodel default-model
@@ -165,6 +165,11 @@
            {:number 5}))))
 
 (deftest schema-errors-test
+  (testing "Can we switch off input and output schema validation?"
+    (set-intermediate-fn-validation! false)
+    (is (broken {} {:baz 6})) ;; missing input
+    (is (broken {:foo 12} {:baz 6})) ;; missing output
+    (set-intermediate-fn-validation! true))
   (testing "Does the macro catch errors in input schema?"
     (is (thrown-with-msg?
          Exception

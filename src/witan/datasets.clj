@@ -165,8 +165,7 @@
         filter-on (fn [column-values]
                     (map #(get column-values %) filter-indexes))
         empty-data (mapv (constantly []) (ds/column-names dataset))]
-    (->> dataset
-         .columns
+    (->> (:columns dataset)
          (apply (partial mapv vector))
          (r/fold
           (fn combiner
