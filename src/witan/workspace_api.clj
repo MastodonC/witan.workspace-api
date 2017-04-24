@@ -5,8 +5,8 @@
 
 (def ^:private counter (atom 0))
 (def ^:private logger (agent nil))
+(def ^:private intermediate-validation? (atom true))
 (def logging-fn (atom identity))
-(def intermediate-validation? (atom true))
 
 (defn set-api-logging!
   [log]
